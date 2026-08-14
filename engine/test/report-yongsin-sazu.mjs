@@ -92,6 +92,8 @@ const html = `<title>용신 교차 검증 — 우리 엔진 × SAZU API</title>
   .meta{color:var(--ink-soft); font-size:13.5px; margin:0 0 32px;}
   .meta b{color:var(--ink); font-weight:600;}
   h2{font-size:17px; margin:34px 0 12px; font-weight:700;}
+  .fixed{display:inline-block; vertical-align:middle; margin-left:8px; font-size:11px; font-weight:700;
+         letter-spacing:.08em; color:var(--ok); background:var(--ok-bg); border-radius:999px; padding:3px 10px;}
   p{margin:0 0 12px;} .sub{color:var(--ink-soft); font-size:14px;}
 
   .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:0 0 8px;}
@@ -140,16 +142,17 @@ const html = `<title>용신 교차 검증 — 우리 엔진 × SAZU API</title>
     <div class="tile"><div class="k">용신 불일치 사유</div><div class="v" style="font-size:19px">정책 ${stat.policy} · 기타 ${stat.etc}</div><div class="n">조후 우선 vs 억부 우선</div></div>
   </div>
 
-  <h2>발견 1 — 시각 경계가 30분 어긋나 있었다</h2>
+  <h2>발견 1 — 시각 경계가 30분 어긋나 있었다 <span class="fixed">수정 완료</span></h2>
   <div class="find">
-    <h3>현행 설정(자시 23:30)으로는 사주팔자가 ${stat.paljaA}/${N}만 일치</h3>
+    <h3>검증 당시 설정(자시 23:30)으로는 사주팔자가 ${stat.paljaA}/${N}만 일치</h3>
     <p>같은 표본을 <b>자시 경계 23:00</b>으로 바꿔 계산하면 <b>${stat.paljaB}/${N}</b>로 올라간다.</p>
-    <p>원인은 <b>보정 이중 적용</b>이다. 우리는 경도 보정 <code>−32분</code>을 적용한 위에 경계를 다시
-      <code>+30분</code> 옮겨서, 자시가 KST <b>00:02</b>에 시작한다.
+    <p>원인은 <b>보정 이중 적용</b>이었다. 경도 보정 <code>−32분</code>을 적용한 위에 경계를 다시
+      <code>+30분</code> 옮겨서, 자시가 KST <b>00:02</b>에 시작하고 있었다.
       SAZU의 한국 관습 모드는 경도 보정을 <code>−2분</code>만 적용하고 경계를 23:30에 두어 자시가 KST <b>23:32</b>에 시작한다.
       "자시 23:30"이라는 관습 자체가 경도 보정을 대신하는 근사치이므로, 둘을 함께 적용하면 30분이 밀린다.</p>
-    <p>고치는 법: <code>engine/src/manse.js</code>의 <code>ZI_BOUNDARY</code>를 <code>23*60</code>으로.
-      그러면 자시 시작이 KST 23:32가 되어 관습·진태양시 양쪽과 2분 이내로 맞는다.</p>
+    <p><b>조치</b>: <code>engine/src/manse.js</code>의 <code>ZI_BOUNDARY</code>를 <code>23*60</code>으로 되돌렸다.
+      자시 시작이 KST 23:32가 되어 관습·진태양시 양쪽과 2분 이내로 맞는다.
+      아래 표의 "우리" 열은 이미 이 수정이 반영된 값이다.</p>
   </div>
 
   <h2>발견 2 — 용신 판정 정책이 서로 반대다</h2>
@@ -165,7 +168,7 @@ const html = `<title>용신 교차 검증 — 우리 엔진 × SAZU API</title>
   </div>
 
   <h2>전체 비교표</h2>
-  <p class="sub">우리 값은 <b>경계 23:00</b> 설정 기준(발견 1 반영). 신강약 옆 작은 숫자는 점수(우리 −N~+N, SAZU 0~100).</p>
+  <p class="sub">우리 값은 <b>경계 23:00</b>(발견 1 수정 반영) 기준. 신강약 옆 작은 숫자는 점수(우리 −N~+N, SAZU 0~100).</p>
   <div class="table-scroll">
     <table>
       <thead><tr>

@@ -131,7 +131,7 @@ function renderResult(saju, st, cl, yg) {
   const rows = [
     ['입력 시각', `${saju.input.year}-${pad(saju.input.month)}-${pad(saju.input.day)} ${pad(saju.input.hour)}:${pad(saju.input.minute)}`],
     ['진태양시', `${pad(s.hh)}:${pad(s.mi)} — 경도 보정 ${t.longitudeCorrection}분${t.dstMinutes ? ` + 서머타임 −${t.dstMinutes}분` : ''}`],
-    ['일주 경계', s.earlyZi ? '자시(23:30 이후) — 다음 날 일주 적용' : '해당일 일주'],
+    ['일주 경계', s.earlyZi ? `자시(진태양시 ${pad(Math.floor(t.ziBoundaryMinutes / 60))}:${pad(t.ziBoundaryMinutes % 60)} 이후) — 다음 날 일주 적용` : '해당일 일주'],
     ['서머타임', t.dstMinutes ? '시행 기간 — 1시간 되돌림' : '해당 없음'],
     ['강약 / 조후', `${st.total > 0 ? '+' : ''}${st.total} (${{ strong: '신강쪽', mid: '중화', weak: '신약쪽' }[st.band]}) / ${cl.net > 0 ? '+' : ''}${cl.net} (${cl.need === 1 ? '한' : cl.need === 4 ? '열' : '평'})`],
     ['절기 데이터', '천문 계산 (허용 오차 ±8분)'],

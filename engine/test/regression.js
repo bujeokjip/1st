@@ -68,44 +68,51 @@ t('KASI 이상치 가드: 2011 입동(잘못된 09:26) → 천문값(03:3x) 보�
   assert.match(note ?? '', /2011 입동/);
 });
 
-t('자시 경계 23:30(§3-6): 시지·일주 경계가 같아 야자시 구간이 없다', async () => {
-  // ① 진태양시 23:13 (KST 23:45) → 아직 해시, 일주 당일(경자) → 정해시
-  const hae = await computeSajuPalja({ year: 1979, month: 2, day: 2, hour: 23, minute: 45 });
+t('자시 경계 23:00(§3-6): 시지·일주 경계가 같아 야자시 구간이 없다', async () => {
+  // ① 진태양시 22:58 (KST 23:30) → 아직 해시, 일주 당일(경자) → 정해시
+  const hae = await computeSajuPalja({ year: 1979, month: 2, day: 2, hour: 23, minute: 30 });
   assert.equal(hae.solarTime.earlyZi, false);
   assert.deepEqual(hae.pillars.day, { stem: 6, branch: 0 });
   assert.deepEqual(hae.pillars.hour, { stem: 3, branch: 11 });
 
-  // ② 진태양시 23:43 (KST 익일 00:15) → 자시 진입 = 일주도 다음 날(신축) → 무자시
-  const zi = await computeSajuPalja({ year: 1979, month: 2, day: 3, hour: 0, minute: 15 });
+  // ② 진태양시 23:13 (KST 23:45) → 자시 진입 = 일주도 다음 날(신축) → 무자시
+  const zi = await computeSajuPalja({ year: 1979, month: 2, day: 2, hour: 23, minute: 45 });
   assert.equal(zi.solarTime.earlyZi, true);
   assert.deepEqual(zi.pillars.day, { stem: 7, branch: 1 });
   assert.deepEqual(zi.pillars.hour, { stem: 4, branch: 0 });
 
-  // ③ 자시는 자정을 걸치므로(23:30~01:30) 전반·후반이 같은 일주·시주여야 한다.
-  //    전반(23:30~23:59)은 날짜를 넘기고, 후반(00:00~01:29)은 이미 다음 날이라 그대로 둔다.
-  const zisi = [[2, 23, 30], [2, 23, 59], [3, 0, 0], [3, 0, 28], [3, 1, 29]];
-  for (const [d, h, m] of zisi) {
+  // ③ 자시는 자정을 걸치므로(23:00~01:00) 전반·후반이 같은 일주·시주여야 한다.
+  //    전반(23:00~23:59)은 날짜를 넘기고, 후반(00:00~00:59)은 이미 다음 날이라 그대로 둔다.
+  for (const [d, h, m] of [[2, 23, 0], [2, 23, 59], [3, 0, 0], [3, 0, 30], [3, 0, 59]]) {
     const r = await computeSajuPalja({ year: 1979, month: 2, day: d, hour: h, minute: m, applyLongitude: false });
     assert.deepEqual(r.pillars.hour, { stem: 4, branch: 0 }, `2/${d} ${h}:${m} 시주가 무자가 아님`);
     assert.deepEqual(r.pillars.day, { stem: 7, branch: 1 }, `2/${d} ${h}:${m} 일주가 신축이 아님`);
   }
   // 자시 직전·직후는 다른 기둥
-  const hae2 = await computeSajuPalja({ year: 1979, month: 2, day: 2, hour: 23, minute: 29, applyLongitude: false });
+  const hae2 = await computeSajuPalja({ year: 1979, month: 2, day: 2, hour: 22, minute: 59, applyLongitude: false });
   assert.deepEqual([hae2.pillars.day, hae2.pillars.hour], [{ stem: 6, branch: 0 }, { stem: 3, branch: 11 }]);
-  const chuk = await computeSajuPalja({ year: 1979, month: 2, day: 3, hour: 1, minute: 30, applyLongitude: false });
+  const chuk = await computeSajuPalja({ year: 1979, month: 2, day: 3, hour: 1, minute: 0, applyLongitude: false });
   assert.deepEqual(chuk.pillars.hour, { stem: 5, branch: 1 }); // 기축
 });
 
-t('시지 경계 +30분 이동(§3-6): 자 23:30~01:30 · 축 01:30~03:30', async () => {
+t('시지 경계 표준(§3-6): 자 23:00~01:00 · 축 01:00~03:00', async () => {
   const at = async (h, m) => (await computeSajuPalja({
     year: 1979, month: 2, day: 3, hour: h, minute: m, applyLongitude: false,
   })).pillars.hour.branch;
-  assert.equal(await at(23, 29), 11); // 해
-  assert.equal(await at(23, 30), 0);  // 자 시작
-  assert.equal(await at(1, 29), 0);   // 아직 자
-  assert.equal(await at(1, 30), 1);   // 축 시작
-  assert.equal(await at(3, 29), 1);
-  assert.equal(await at(3, 30), 2);   // 인
+  assert.equal(await at(22, 59), 11); // 해
+  assert.equal(await at(23, 0), 0);   // 자 시작
+  assert.equal(await at(0, 59), 0);   // 아직 자
+  assert.equal(await at(1, 0), 1);    // 축 시작
+  assert.equal(await at(2, 59), 1);
+  assert.equal(await at(3, 0), 2);    // 인
+});
+
+t('경도 보정 이중 적용 방지(§3-6): 자시 시작이 서울 KST 23:32', async () => {
+  // 관습("자시 23:30")과 2분 이내로 맞아야 한다 — 경계를 23:30으로 두면 KST 00:02로 밀린다
+  const before = await computeSajuPalja({ year: 1979, month: 2, day: 2, hour: 23, minute: 31 });
+  const after = await computeSajuPalja({ year: 1979, month: 2, day: 2, hour: 23, minute: 32 });
+  assert.equal(before.solarTime.earlyZi, false);
+  assert.equal(after.solarTime.earlyZi, true);
 });
 
 t('경도 보정 ON 기본(§3-6): 서울 기준 −32분, 끄면 보정 0', async () => {
