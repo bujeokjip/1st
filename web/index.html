@@ -27,7 +27,23 @@
     background-attachment:fixed;
   }
   [hidden]{display:none !important;}
-  .frame{width:min(860px,92vw); margin:0 auto; padding:44px 0 70px;}
+
+  /* ── 화면 전환 ── */
+  .screen{display:none; min-height:100vh; flex-direction:column;}
+  .screen.on{display:flex; animation:fade .32s ease both;}
+  @keyframes fade{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
+  @media (prefers-reduced-motion:reduce){ .screen.on{animation:none;} }
+  .frame{width:min(860px,92vw); margin:0 auto; padding:34px 0 20px; flex:1;}
+
+  .back{
+    display:inline-flex; align-items:center; gap:7px; margin-bottom:22px;
+    border:1px solid var(--gold-faint); color:var(--gold); background:transparent;
+    font-family:inherit; font-size:13px; letter-spacing:.08em; cursor:pointer;
+    padding:7px 16px; border-radius:999px; transition:border-color .15s, color .15s;
+  }
+  .back:hover{border-color:var(--gold); color:var(--gold-strong);}
+  .back:focus-visible{outline:2px solid var(--gold-bright); outline-offset:2px;}
+
   .eyebrow{font-size:clamp(14px,1.6vw,17px); letter-spacing:.34em; color:var(--gold); text-align:center; margin:0 0 6px; font-weight:700;}
   h1.title{
     font-size:clamp(36px,6vw,58px); font-weight:700; letter-spacing:.12em;
@@ -64,7 +80,6 @@
   .btn-find[disabled]{opacity:.6; cursor:progress;}
 
   /* ── 결과 ── */
-  #result{margin-top:64px;}
   .sec-label{font-size:12.5px; letter-spacing:.3em; color:var(--gold); font-weight:700; text-align:center; margin:0 0 16px;}
   .pillars{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; max-width:540px; margin:0 auto 12px;}
   .pillar{
@@ -102,8 +117,18 @@
   .god.main .g-nm{color:var(--gold-strong);}
   .god .g-wx{font-size:14.5px; color:#E4CFA3; font-weight:700;}
 
+  .r-actions{display:flex; justify-content:center; margin:38px 0 0;}
+  .btn-again{
+    border:1px solid var(--gold); color:var(--gold-strong); background:rgba(201,167,106,.06);
+    font-family:inherit; font-size:15px; letter-spacing:.14em; font-weight:700;
+    padding:13px 40px; border-radius:999px; cursor:pointer; transition:background .15s, transform .12s;
+  }
+  .btn-again:hover{background:rgba(201,167,106,.16); transform:translateY(-1px);}
+  .btn-again:active{transform:translateY(1px);}
+  .btn-again:focus-visible{outline:2px solid var(--gold-bright); outline-offset:3px;}
+
   /* 계산 근거 */
-  details.calc{max-width:520px; margin:38px auto 0; border-top:1px solid rgba(138,111,69,.4); padding-top:14px;}
+  details.calc{max-width:520px; margin:34px auto 0; border-top:1px solid rgba(138,111,69,.4); padding-top:14px;}
   details.calc summary{
     cursor:pointer; font-size:12.5px; letter-spacing:.14em; color:var(--gold-dim);
     list-style:none; text-align:center;
@@ -134,17 +159,17 @@
   }
   .pill:hover{border-color:var(--gold);}
   .pill:focus-visible{outline:2px solid var(--gold-bright); outline-offset:2px;}
-  #scr-error{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+  #scr-error .frame{display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
   #scr-error .boom{font-size:clamp(44px,7vw,68px); color:var(--gold-strong); font-weight:700; letter-spacing:.1em; margin:0 0 16px;}
   #scr-error p{color:#D9BE8C; font-size:16px; margin:0 0 32px;}
 
   footer{text-align:center; padding:44px 0 26px; color:#6E5836; font-size:11.5px; letter-spacing:.08em; line-height:1.9;}
-  @media (prefers-reduced-motion:reduce){ .btn-find{transition:none;} }
 </style>
 </head>
 <body>
 
-<div id="scr-main">
+<!-- ═══════════ 용신찾기 입력 ═══════════ -->
+<section class="screen on" id="scr-find">
   <div class="frame">
     <p class="eyebrow">부적집</p>
     <h1 class="title">용신찾기</h1>
@@ -177,35 +202,45 @@
 
       <div class="find-row"><button class="btn-find" id="btnFind">찾기</button></div>
     </div>
-
-    <section id="result" hidden>
-      <p class="sec-label">당신의 사주팔자</p>
-      <div class="pillars" id="pillars"></div>
-      <p class="palja-line" id="paljaLine"></p>
-
-      <h2 class="r-title">찾았다, 요놈!</h2>
-      <p class="r-copy" id="rCopy"></p>
-      <p class="r-soft" id="rSoft" hidden>이 사주는 중화에 가까워 해석의 여지가 있어요. 참고용으로 봐주세요.</p>
-      <div class="glyph-stage"><div class="glyph-char" id="yongGlyph"></div></div>
-      <div class="gods" id="gods"></div>
-
-      <details class="calc">
-        <summary>계산 근거 보기</summary>
-        <div class="calc-grid" id="calcRows"></div>
-      </details>
-    </section>
   </div>
   <footer>
     부적집 · 명리 기반 재미 서비스 — 입력값은 저장되지 않고 브라우저 안에서만 계산됩니다<br>
     절기는 천문 계산 기준 · 계산 정책은 용신산출 정책명세서 §3~§6
   </footer>
-</div>
+</section>
 
-<!-- 오류 폴백 (§10-E) -->
-<section id="scr-error" hidden>
-  <p class="boom">띠용!</p>
-  <p>일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.</p>
-  <button class="pill" id="btnErrHome">처음으로 돌아가기</button>
+<!-- ═══════════ 결과 ═══════════ -->
+<section class="screen" id="scr-result">
+  <div class="frame">
+    <button class="back" data-go="find">← 다시하기</button>
+
+    <p class="sec-label">당신의 사주팔자</p>
+    <div class="pillars" id="pillars"></div>
+    <p class="palja-line" id="paljaLine"></p>
+
+    <h1 class="r-title">찾았다, 요놈!</h1>
+    <p class="r-copy" id="rCopy"></p>
+    <p class="r-soft" id="rSoft" hidden>이 사주는 중화에 가까워 해석의 여지가 있어요. 참고용으로 봐주세요.</p>
+    <div class="glyph-stage"><div class="glyph-char" id="yongGlyph"></div></div>
+    <div class="gods" id="gods"></div>
+
+    <div class="r-actions"><button class="btn-again" data-go="find">다시하기</button></div>
+
+    <details class="calc">
+      <summary>계산 근거 보기</summary>
+      <div class="calc-grid" id="calcRows"></div>
+    </details>
+  </div>
+  <footer>부적집 · 재미로 보는 명리 — 결과는 참고용입니다</footer>
+</section>
+
+<!-- ═══════════ 오류 폴백 (§10-E) ═══════════ -->
+<section class="screen" id="scr-error">
+  <div class="frame">
+    <p class="boom">띠용!</p>
+    <p>일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.</p>
+    <button class="pill" data-go="find">처음으로 돌아가기</button>
+  </div>
 </section>
 
 <!-- 모달: 출생 시각 모름 (§10-A) -->

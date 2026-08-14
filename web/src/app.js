@@ -10,6 +10,26 @@ import { PHRASES, WX_NAME } from './phrases.js';
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 
+/* ── 화면 네비게이션 ──
+   입력·결과·오류를 별도 화면으로 두고, 브라우저 뒤로가기가 결과→입력으로 동작하도록
+   history에 상태를 쌓는다(다시하기 버튼도 같은 경로를 탄다). */
+function showScreen(name) {
+  $$('.screen').forEach(s => s.classList.toggle('on', s.id === `scr-${name}`));
+  window.scrollTo(0, 0);
+}
+function goResult() {
+  history.pushState({ screen: 'result' }, '', '#result');
+  showScreen('result');
+}
+function goFind() {
+  // 결과에서 넘어온 경우 뒤로가기로 되돌려 history가 쌓이지 않게 한다
+  if (history.state?.screen === 'result') history.back();
+  else { history.replaceState({ screen: 'find' }, '', '#'); showScreen('find'); }
+}
+window.addEventListener('popstate', e => showScreen(e.state?.screen === 'result' ? 'result' : 'find'));
+history.replaceState({ screen: 'find' }, '', location.hash || '#');
+$$('[data-go="find"]').forEach(b => b.addEventListener('click', goFind));
+
 /* 태어난 도시 → 경도(§3-6). 이전 프로토타입에선 UI만 있고 계산에 반영되지 않았으나,
    경도 보정이 기본 ON이 되면서 실제로 결과에 반영된다. */
 const CITIES = [
@@ -64,8 +84,7 @@ $('#btnFind').addEventListener('click', async () => {
     });
     const { strength, climate, yongsin } = computeYongsin(saju.pillars);
     renderResult(saju, strength, climate, yongsin);
-    $('#result').hidden = false;
-    $('#result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    goResult();
   } catch (err) {
     console.error(err);
     showError(); // §10-E 폴백
@@ -112,7 +131,7 @@ function renderResult(saju, st, cl, yg) {
   const rows = [
     ['입력 시각', `${saju.input.year}-${pad(saju.input.month)}-${pad(saju.input.day)} ${pad(saju.input.hour)}:${pad(saju.input.minute)}`],
     ['진태양시', `${pad(s.hh)}:${pad(s.mi)} — 경도 보정 ${t.longitudeCorrection}분${t.dstMinutes ? ` + 서머타임 −${t.dstMinutes}분` : ''}`],
-    ['일주 경계', s.earlyZi ? '조자시(23:30 이후) — 다음 날 일주 적용' : s.lateZi ? '야자시(23:00~23:29) — 시지만 자시, 일주는 당일' : '해당일 일주'],
+    ['일주 경계', s.earlyZi ? '자시(23:30 이후) — 다음 날 일주 적용' : '해당일 일주'],
     ['서머타임', t.dstMinutes ? '시행 기간 — 1시간 되돌림' : '해당 없음'],
     ['강약 / 조후', `${st.total > 0 ? '+' : ''}${st.total} (${{ strong: '신강쪽', mid: '중화', weak: '신약쪽' }[st.band]}) / ${cl.net > 0 ? '+' : ''}${cl.net} (${cl.need === 1 ? '한' : cl.need === 4 ? '열' : '평'})`],
     ['절기 데이터', '천문 계산 (허용 오차 ±8분)'],
@@ -124,13 +143,5 @@ function renderResult(saju, st, cl, yg) {
 $$('.overlay').forEach(ov => ov.addEventListener('click', e => {
   if (e.target === ov || e.target.closest('[data-close]')) ov.classList.remove('on');
 }));
-function showError() {
-  $('#scr-main').hidden = true;
-  $('#scr-error').hidden = false;
-}
-$('#btnErrHome').addEventListener('click', () => {
-  $('#scr-error').hidden = true;
-  $('#scr-main').hidden = false;
-  $('#result').hidden = true;
-});
+const showError = () => showScreen('error'); // §10-E
 window.addEventListener('error', () => { try { showError(); } catch { /* noop */ } });

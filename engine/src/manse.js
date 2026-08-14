@@ -20,8 +20,11 @@ import { koreaTimeLaw, LONGITUDE } from './korea-time.js';
 
 const MIN = 60_000;
 
-/* 조자시 경계(진태양시 기준, 분). 이 시각부터 일주가 다음 날로 넘어간다 — 기획 소유 수치(§3-6). */
+/* 자시 시작 시각(진태양시 기준, 분) — 기획 소유 수치(§3-6).
+   시지(時支)의 기준점이자 일주가 다음 날로 넘어가는 경계로 함께 쓴다(둘이 같아야 야자시 구간이 안 생긴다).
+   표준(23:00) 대비 이동량만큼 시각을 되돌린 뒤 기존 시지 공식을 적용한다. */
 const ZI_BOUNDARY = 23 * 60 + 30;
+const ZI_SHIFT = ZI_BOUNDARY - 23 * 60;
 
 const jdn = (y, m, d) => {
   const a = Math.floor((14 - m) / 12), yy = y + 4800 - a, mm = m + 12 * a - 3;
@@ -93,10 +96,9 @@ export async function computeSajuPalja(input) {
   const longitudeCorrection = applyLongitude ? lonOffset - stdOffset : 0; // 표준자오선 대비 경도 보정만
   const totalCorrection = lonOffset - (stdOffset + dst);                  // 기록 시각 대비 총 이동(서머타임 포함)
 
-  // ── 일주 (§3-1) — 조자시설: 진태양시 23:30부터 다음 날 일주 (§3-6)
-  const early = solar.hh * 60 + solar.mi >= ZI_BOUNDARY;
-  // 23:00~23:29는 시지가 자(子)인데 일주는 당일 — 경계를 23:30으로 잡은 데서 생기는 야자시 구간
-  const lateZi = solar.hh === 23 && !early;
+  // ── 일주 (§3-1) — 조자시설: 진태양시 23:30(자시 시작)부터 다음 날 일주 (§3-6)
+  const solarMinutes = solar.hh * 60 + solar.mi;
+  const early = solarMinutes >= ZI_BOUNDARY;
   const dayDate = early ? addDays(solar, 1) : { y: solar.y, m: solar.m, d: solar.d };
   const localIdx = ((jdn(dayDate.y, dayDate.m, dayDate.d) + 49) % 60 + 60) % 60;
   let day_ = { stem: localIdx % 10, branch: localIdx % 12 };
@@ -137,8 +139,9 @@ export async function computeSajuPalja(input) {
   const huDun = [2, 4, 6, 8, 0];
   const monthP = { stem: (huDun[yearP.stem % 5] + ((mBranch - 2) % 12 + 12) % 12) % 10, branch: mBranch };
 
-  // ── 시주 (§3-5) — 오서둔, 진태양시 기준
-  const hBranch = Math.floor(((solar.hh + 1) % 24) / 2);
+  // ── 시주 (§3-5) — 오서둔, 진태양시 기준(자시 시작 시각만큼 되돌려 적용)
+  const shiftedHour = Math.floor(((solarMinutes - ZI_SHIFT + 1440) % 1440) / 60);
+  const hBranch = Math.floor(((shiftedHour + 1) % 24) / 2);
   const shuDun = [0, 2, 4, 6, 8];
   const hourP = { stem: (shuDun[day_.stem % 5] + hBranch) % 10, branch: hBranch };
 
@@ -154,7 +157,7 @@ export async function computeSajuPalja(input) {
   return {
     input: { ...input },
     kst,
-    solarTime: { ...solar, correctionMinutes: totalCorrection, earlyZi: early, lateZi },
+    solarTime: { ...solar, correctionMinutes: totalCorrection, earlyZi: early },
     sajuYear,
     pillars,
     palja: {
