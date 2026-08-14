@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>用神 산출기 · 명리 용신 로직</title>
+<style>
+  /* ===== 먹(墨) · 주사(朱砂) · 화선지 테마 ===== */
+  :root{
+    --paper:#E9E4D6;        /* 화선지 */
+    --paper-2:#F1ECDF;      /* 밝은 한지 */
+    --ink:#1B1714;          /* 먹 */
+    --ink-soft:#5A5249;     /* 옅은 먹 */
+    --ink-faint:#8B8275;    /* 회먹 */
+    --line:#C9BFA9;         /* 괘선 */
+    --line-soft:#D8CFBC;
+    --ju:#B5342A;           /* 주사 朱砂 */
+    --ju-deep:#8E261E;
+    /* 오행 색 (목0 화1 토2 금3 수4) */
+    --w0:#2E6E4E;  /* 목 청록 */
+    --w1:#B5342A;  /* 화 주사 */
+    --w2:#A87B2B;  /* 토 황토 */
+    --w3:#6E7378;  /* 금 회금 */
+    --w4:#2C4A6E;  /* 수 먹청 */
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+    line-height:1.65;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(0,0,0,.018) 0, transparent 40%),
+      radial-gradient(circle at 85% 80%, rgba(0,0,0,.018) 0, transparent 40%);
+  }
+  .serif{font-family:'Iowan Old Style','Apple Garamond','Nanum Myeongjo',Georgia,'Batang','바탕',serif;}
+  .han{font-family:'Nanum Myeongjo','Batang','바탕',Georgia,serif;}
+  .mono{font-family:'SF Mono',ui-monospace,'D2Coding','Consolas',monospace;}
+
+  .wrap{max-width:920px; margin:0 auto; padding:clamp(20px,5vw,56px) clamp(16px,4vw,40px) 80px;}
+
+  /* ---- 헤더 ---- */
+  header{position:relative; margin-bottom:36px;}
+  .eyebrow{
+    font-size:12px; letter-spacing:.42em; text-transform:uppercase;
+    color:var(--ju); font-weight:700; margin:0 0 14px;
+  }
+  .eyebrow .han{letter-spacing:.2em; font-size:13px;}
+  h1{
+    font-size:clamp(30px,6vw,52px); margin:0 0 10px; line-height:1.05;
+    font-weight:600; letter-spacing:-.01em;
+  }
+  h1 .han{color:var(--ju); font-weight:700;}
+  .lede{color:var(--ink-soft); max-width:60ch; font-size:15px; margin:0;}
+  .seal{
+    position:absolute; top:-6px; right:0; width:62px; height:62px;
+    border:2.5px solid var(--ju); border-radius:9px; color:var(--ju);
+    display:grid; place-items:center; transform:rotate(-4deg);
+    font-family:'Nanum Myeongjo','Batang',serif; font-size:13px; font-weight:700;
+    line-height:1.05; text-align:center; letter-spacing:.06em; opacity:.92;
+    box-shadow:0 0 0 3px var(--paper), 0 0 0 4px rgba(181,52,42,.25);
+  }
+  @media(max-width:520px){ .seal{display:none;} }
+
+  /* ---- 입력 카드 ---- */
+  .card{
+    background:var(--paper-2); border:1px solid var(--line);
+    border-radius:4px; padding:clamp(18px,3vw,28px);
+    box-shadow:0 1px 0 rgba(0,0,0,.03);
+  }
+  .form-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px 18px;}
+  label{display:block; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+        color:var(--ink-faint); font-weight:700; margin:0 0 6px;}
+  input[type=date],input[type=time],select{
+    width:100%; padding:11px 12px; border:1px solid var(--line);
+    background:var(--paper); color:var(--ink); border-radius:3px;
+    font-family:inherit; font-size:15px;
+  }
+  input:focus,select:focus{outline:2px solid var(--ju); outline-offset:1px; border-color:var(--ju);}
+  .seg{display:flex; gap:0; border:1px solid var(--line); border-radius:3px; overflow:hidden;}
+  .seg button{
+    flex:1; padding:11px 8px; border:0; background:var(--paper);
+    color:var(--ink-soft); font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;
+  }
+  .seg button[aria-pressed=true]{background:var(--ink); color:var(--paper);}
+  .opts{display:flex; flex-wrap:wrap; gap:14px 22px; margin-top:18px; align-items:center;}
+  .chk{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ink-soft); cursor:pointer;}
+  .chk input{width:16px; height:16px; accent-color:var(--ju);}
+  .run{
+    margin-top:22px; width:100%; padding:15px; border:0; cursor:pointer;
+    background:var(--ju); color:#fff; border-radius:3px; font-family:inherit;
+    font-size:16px; font-weight:700; letter-spacing:.06em;
+    transition:background .15s;
+  }
+  .run:hover{background:var(--ju-deep);}
+  .run:active{transform:translateY(1px);}
+
+  /* ---- 결과 ---- */
+  #out{margin-top:8px;}
+  .empty{color:var(--ink-faint); text-align:center; padding:48px 0 12px; font-size:14px;}
+  section.block{margin-top:42px; animation:rise .5s cubic-bezier(.2,.7,.2,1) both;}
+  @keyframes rise{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;}}
+  @media(prefers-reduced-motion:reduce){section.block,#out section{animation:none!important;}}
+  .sec-head{display:flex; align-items:baseline; gap:14px; margin:0 0 18px; border-bottom:1px solid var(--line); padding-bottom:8px;}
+  .sec-num{font-family:'Nanum Myeongjo','Batang',serif; color:var(--ju); font-size:13px; font-weight:700; letter-spacing:.1em;}
+  .sec-head h2{font-size:19px; margin:0; font-weight:600; letter-spacing:-.01em;}
+  .sec-head .sub{margin-left:auto; font-size:12px; color:var(--ink-faint); letter-spacing:.04em;}
+
+  /* 원국 4기둥 */
+  .verify{font-size:14px; color:var(--ink-soft); margin:-6px 0 18px;}
+  .verify b{color:var(--ink); font-weight:700;}
+  .pillars{display:grid; grid-template-columns:repeat(4,1fr); gap:10px;}
+  .pillar{
+    background:var(--paper-2); border:1px solid var(--line); border-radius:4px;
+    padding:14px 6px 12px; text-align:center; position:relative;
+  }
+  .pillar.me{border-color:var(--ju); box-shadow:0 0 0 1px var(--ju) inset;}
+  .pillar .ptag{font-size:11px; letter-spacing:.14em; color:var(--ink-faint); font-weight:700; margin-bottom:4px;}
+  .pillar .god-top{font-size:12px; color:var(--ink-soft); min-height:17px; font-weight:600;}
+  .glyph{font-family:'Nanum Myeongjo','Batang',serif; font-size:clamp(34px,8vw,46px); line-height:1.18; font-weight:600;}
+  .glyph small{display:block; font-size:12px; color:var(--ink-faint); font-weight:400; letter-spacing:.08em; margin-top:-2px;}
+  .pillar .ji-god{font-size:12px; color:var(--ink-soft); margin-top:4px; min-height:17px; font-weight:600;}
+  .pillar .hidden{font-size:11px; color:var(--ink-faint); margin-top:6px; letter-spacing:.04em; border-top:1px dashed var(--line-soft); padding-top:6px;}
+  .me .ptag{color:var(--ju);}
+
+  /* 오행/십신 분포 */
+  .two{display:grid; grid-template-columns:1fr 1fr; gap:28px;}
+  @media(max-width:600px){ .two{grid-template-columns:1fr;} .pillars{gap:6px;} }
+  .bar-row{display:flex; align-items:center; gap:10px; margin:7px 0; font-size:13px;}
+  .bar-row .nm{width:58px; flex:none; color:var(--ink-soft); font-weight:600;}
+  .bar-track{flex:1; height:14px; background:var(--paper-2); border:1px solid var(--line-soft); border-radius:2px; overflow:hidden;}
+  .bar-fill{height:100%;}
+  .bar-row .vl{width:30px; flex:none; text-align:right; color:var(--ink-faint);}
+
+  /* 강약 점수표 */
+  .score-table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  .score-table th,.score-table td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line-soft);}
+  .score-table th{color:var(--ink-faint); font-weight:700; font-size:11px; letter-spacing:.1em; text-transform:uppercase;}
+  .score-table td.pt{text-align:right; font-family:'SF Mono',ui-monospace,monospace; font-weight:600;}
+  .pt.pos{color:var(--w0);} .pt.neg{color:var(--ju);}
+  .score-total{display:flex; align-items:center; gap:14px; margin-top:16px; padding:14px 16px; background:var(--paper-2); border:1px solid var(--line); border-radius:4px;}
+  .score-total .num{font-family:'Nanum Myeongjo','Batang',serif; font-size:30px; font-weight:700;}
+  .score-total .verdict{font-size:18px; font-weight:700;}
+  .score-total .desc{font-size:13px; color:var(--ink-soft); margin-left:auto; text-align:right; max-width:46%;}
+
+  /* 한난 게이지 */
+  .gauge{position:relative; height:40px; border-radius:4px; overflow:hidden; border:1px solid var(--line);
+    background:linear-gradient(90deg,var(--w4) 0%, #6f8aa6 30%, var(--paper-2) 50%, #cf9a6a 70%, var(--w1) 100%);}
+  .gauge .needle{position:absolute; top:-4px; bottom:-4px; width:3px; background:var(--ink); box-shadow:0 0 0 2px var(--paper);}
+  .gauge-labels{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-faint); margin-top:6px; letter-spacing:.1em;}
+
+  /* 용신 패널 */
+  .yong-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;}
+  .yong{border:1px solid var(--line); border-radius:5px; padding:16px 14px; background:var(--paper-2); position:relative; overflow:hidden;}
+  .yong.primary{border-width:2px;}
+  .yong .role{font-size:11px; letter-spacing:.16em; text-transform:uppercase; font-weight:700; color:var(--ink-faint);}
+  .yong .yong-glyph{font-family:'Nanum Myeongjo','Batang',serif; font-size:40px; font-weight:700; line-height:1.1; margin:4px 0;}
+  .yong .yong-cat{font-size:13px; color:var(--ink-soft); font-weight:600;}
+  .yong .accent{position:absolute; left:0; top:0; bottom:0; width:5px;}
+  .yong.primary .role{color:var(--ju);}
+
+  /* 대운 타임라인 */
+  .dw-meta{font-size:13px; color:var(--ink-soft); margin:-6px 0 16px;}
+  .dw-track{display:grid; grid-template-columns:repeat(8,1fr); gap:8px;}
+  @media(max-width:640px){ .dw-track{grid-template-columns:repeat(4,1fr);} }
+  .dw{border:1px solid var(--line); border-radius:4px; padding:12px 4px; text-align:center; background:var(--paper-2);}
+  .dw.now{border-color:var(--ju); box-shadow:0 0 0 1px var(--ju) inset; background:var(--paper);}
+  .dw .age{font-size:11px; color:var(--ink-faint); letter-spacing:.06em;}
+  .dw .gz{font-family:'Nanum Myeongjo','Batang',serif; font-size:22px; font-weight:600; margin:3px 0 1px;}
+  .dw .dg{font-size:11px; color:var(--ink-soft); font-weight:600;}
+  .dw.now .age{color:var(--ju); font-weight:700;}
+
+  /* 해석 */
+  .read{font-size:14.5px; color:var(--ink); line-height:1.78;}
+  .read p{margin:0 0 12px;}
+  .read .key{color:var(--ju); font-weight:700;}
+
+  .note{margin-top:40px; font-size:12px; color:var(--ink-faint); line-height:1.7; border-top:1px solid var(--line); padding-top:16px;}
+  .note b{color:var(--ink-soft);}
+  footer{margin-top:30px; font-size:11px; color:var(--ink-faint); letter-spacing:.05em;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="seal">用<br>神</div>
+    <p class="eyebrow"><span class="han">命理</span> &nbsp;·&nbsp; 억부 · 조후 · 병약 통합</p>
+    <h1>用神<span class="han"> </span> 산출기</h1>
+    <p class="lede serif">생년월일시를 넣으면 사주 원국을 세우고, 일간 강약과 한난조습을 점수로 풀어 용신·희신·기신을 도출합니다. 만세력 계산부터 대운까지 전부 이 페이지 안에서 돕니다 — 서버도, 외부 호출도 없이.</p>
+  </header>
+
+  <div class="card">
+    <div class="form-grid">
+      <div>
+        <label for="bdate">생년월일 (양력)</label>
+        <input type="date" id="bdate" value="1979-02-02" min="1900-01-01" max="2099-12-31">
+      </div>
+      <div>
+        <label for="btime">출생 시각</label>
+        <input type="time" id="btime" value="16:45">
+      </div>
+      <div>
+        <label>성별</label>
+        <div class="seg" id="genderSeg">
+          <button type="button" data-g="F" aria-pressed="true">여자</button>
+          <button type="button" data-g="M" aria-pressed="false">남자</button>
+        </div>
+      </div>
+    </div>
+    <div class="opts">
+      <label class="chk"><input type="checkbox" id="optLong"> 경도 보정 (서울 기준 −32분)</label>
+      <label class="chk"><input type="checkbox" id="optHidden" checked> 지장간 표시</label>
+    </div>
+    <button class="run" id="runBtn">산출하기</button>
+  </div>
+
+  <div id="out">
+    <p class="empty">생년월일시를 확인하고 <b>산출하기</b>를 누르세요.</p>
+  </div>
+
+  <div class="note" id="noteBox" style="display:none">
+    <b>계산 방식 · 한계</b><br>
+    · 절기는 <b>寿星공식</b> 근사값입니다 (1900–2099). 節 경계 ±1일 이내 출생자는 만세력 원본으로 재확인하세요.<br>
+    · 일주는 율리우스적일 기준 60갑자 연속 계산, 월주·시주는 節 경계 + 오호둔/오서둔 적용.<br>
+    · 자시 처리는 <b>자정 기준 일 변경</b>(야자시 미구분)입니다.<br>
+    · 강약 점수와 용신 판정은 <b>억부·조후·병약을 결합한 휴리스틱</b>입니다. 합충·격국·청탁은 단순화되어 있으니, 실제 감명은 사람이 한 번 더 봐야 합니다. 경계값(중화)일수록 더 그렇습니다.<br>
+    · 음력 입력은 지원하지 않습니다. 음력 생일은 양력으로 변환 후 입력하세요.
+  </div>
+
+  <footer>로컬 단일 파일 · 데이터 저장 없음 · 명리 연구·창작 보조용</footer>
+</div>
+
+<script>
+"use strict";
+/* ======================= 상수 ======================= */
+const GAN=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const JI =['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const GAN_KO=['갑','을','병','정','무','기','경','신','임','계'];
+const JI_KO =['자','축','인','묘','진','사','오','미','신','유','술','해'];
+/* 오행 idx: 목0 화1 토2 금3 수4 */
+const GAN_WX=[0,0,1,1,2,2,3,3,4,4];
+const JI_WX =[4,2,0,0,2,1,1,2,3,3,2,4];
+const WX_KO=['목','화','토','금','수'];
+const WX_HAN=['木','火','土','金','水'];
+const WX_VAR=['--w0','--w1','--w2','--w3','--w4'];
+/* 지장간 (정기=마지막) */
+const HIDDEN=[
+ [8,9],[9,7,5],[4,2,0],[0,1],[1,9,4],[4,6,2],
+ [2,5,3],[3,1,5],[4,8,6],[6,7],[7,3,4],[4,0,8]
+];
+/* 삼합국: 지지셋 -> 국오행 */
+const SAMHAP=[
+ {set:[8,0,4], wx:4}, // 申子辰 수
+ {set:[2,6,10],wx:1}, // 寅午戌 화
+ {set:[5,9,1], wx:3}, // 巳酉丑 금
+ {set:[11,3,7],wx:0}  // 亥卯未 목
+];
+/* 천간합: [간a,간b]->합화오행 */
+const GANHAP=[ [0,5,2],[1,6,3],[2,7,4],[3,8,0],[4,9,1] ]; // 甲己土,乙庚金,丙辛水,丁壬木,戊癸火
+
+/* 절기 寿星공식 */
+const TERM_MONTH=[1,2,3,4,5,6,7,8,9,10,11,12];
+const TERM_JI   =[1,2,3,4,5,6,7,8,9,10,11,0];
+const C20=[6.11,4.6295,6.3826,5.59,6.318,6.5,7.928,8.35,8.44,9.098,8.218,7.9];
+const C21=[5.4055,3.87,5.63,4.81,5.52,5.678,7.108,7.5,7.646,8.318,7.438,7.18];
+const tdy=(yr,i)=>{const Y=yr%100;const C=yr>=2000?C21[i]:C20[i];return Math.floor(Y*0.2422+C)-Math.floor(Y/4);};
+const tdate=(yr,i)=>new Date(yr,TERM_MONTH[i]-1,tdy(yr,i));
+
+/* ======================= 오행 관계 ======================= */
+const gen=(a,b)=>(a+1)%5===b;     // a생b
+const ctrl=(a,b)=>(a+2)%5===b;    // a극b
+/* 십신: 일간오행/음양 기준 상대 천간 */
+function tenGod(dW,dY,oW,oY){
+  const same=(dY===oY);
+  if(oW===dW) return same?'비견':'겁재';
+  if(gen(dW,oW)) return same?'식신':'상관';   // 아생
+  if(ctrl(dW,oW)) return same?'편재':'정재';   // 아극
+  if(ctrl(oW,dW)) return same?'편관':'정관';   // 극아
+  if(gen(oW,dW)) return same?'편인':'정인';   // 생아
+  return '';
+}
+/* 오행 X가 일간D에 대해 갖는 십신 대분류 */
+function catOf(X,D){
+  if(X===D) return '비겁';
+  if(gen(X,D)) return '인성';
+  if(gen(D,X)) return '식상';
+  if(ctrl(D,X)) return '재성';
+  if(ctrl(X,D)) return '관성';
+  return '';
+}
+
+/* ======================= 만세력 ======================= */
+function jdn(y,m,d){const a=Math.floor((14-m)/12),yy=y+4800-a,mm=m+12*a-3;
+  return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;}
+function gzIndex(s,b){for(let n=0;n<60;n++) if(n%10===s&&n%12===b) return n; return -1;}
+
+function buildNodes(y){
+  let nodes=[{date:tdate(y-1,11),ji:TERM_JI[11]}];
+  for(let i=0;i<12;i++) nodes.push({date:tdate(y,i),ji:TERM_JI[i]});
+  nodes.push({date:tdate(y+1,0),ji:TERM_JI[0]});
+  nodes.sort((a,b)=>a.date-b.date);
+  return nodes;
+}
+
+function computeChart(y,m,d,hh,mm){
+  const birth=new Date(y,m-1,d,hh,mm);
+  const dIdx=((jdn(y,m,d)+49)%60+60)%60;
+  const dStem=dIdx%10, dBranch=dIdx%12;
+  const ipchun=tdate(y,1);
+  const sajuYear=(birth<ipchun)?y-1:y;
+  const yStem=((sajuYear-4)%10+10)%10, yBranch=((sajuYear-4)%12+12)%12;
+  const nodes=buildNodes(y);
+  let mBranch=0; for(const nd of nodes){ if(nd.date<=birth) mBranch=nd.ji; else break; }
+  const huDun=[2,4,6,8,0]; const yinStem=huDun[yStem%5];
+  const off=((mBranch-2)%12+12)%12; const mStem=(yinStem+off)%10;
+  const hBranch=Math.floor(((hh+1)%24)/2);
+  const shuDun=[0,2,4,6,8]; const ziStem=shuDun[dStem%5]; const hStem=(ziStem+hBranch)%10;
+  return {birth,sajuYear,nodes,pillars:{
+    year:{stem:yStem,branch:yBranch}, month:{stem:mStem,branch:mBranch},
+    day:{stem:dStem,branch:dBranch}, hour:{stem:hStem,branch:hBranch}}};
+}
+
+/* ======================= 강약 (STEP 1) ======================= */
+function strength(P){
+  const D=GAN_WX[P.day.stem], DY=P.day.stem%2;
+  const rows=[];
+  let total=0;
+  // 득령 (월지)
+  const mw=JI_WX[P.month.branch]; let s;
+  if(mw===D) s=3; else if(gen(mw,D)) s=2; else if(gen(D,mw)) s=-1; else if(ctrl(D,mw)) s=-2; else s=-3;
+  rows.push(['득령 (월지)', JI[P.month.branch]+' '+catLabel(mw,D), s]); total+=s;
+  // 득지 (일지)
+  const jw=JI_WX[P.day.branch];
+  if(jw===D) s=2; else if(gen(jw,D)) s=1.5; else s=-1;
+  rows.push(['득지 (일지)', JI[P.day.branch]+' '+catLabel(jw,D), s]); total+=s;
+  // 득세 (년·월·시 천간)
+  [['년간',P.year.stem],['월간',P.month.stem],['시간',P.hour.stem]].forEach(([nm,st])=>{
+    const w=GAN_WX[st]; let v;
+    const c=catOf(w,D);
+    if(c==='비겁'||c==='인성') v=1; else v=-0.5;
+    rows.push(['득세 ('+nm+')', GAN[st]+' '+c, v]); total+=v;
+  });
+  // 합충 보정
+  const branches=[P.year.branch,P.month.branch,P.day.branch,P.hour.branch];
+  for(const h of SAMHAP){
+    const cnt=h.set.filter(x=>branches.includes(x)).length;
+    if(cnt>=2){
+      const full=cnt===3; const c=catOf(h.wx,D);
+      let v=0;
+      if(c==='비겁') v=full?1:0.5;
+      else if(c==='인성') v=full?1:0.5;
+      else v=full?-1:-0.5;
+      rows.push([(full?'삼합':'반합')+' '+WX_HAN[h.wx]+'국', c, v]); total+=v;
+    }
+  }
+  // 천간합 (일간 포함, 합화=일간오행이면 강화)
+  const stems=[P.year.stem,P.month.stem,P.hour.stem];
+  for(const gh of GANHAP){
+    if((gh[0]===P.day.stem&&stems.includes(gh[1]))||(gh[1]===P.day.stem&&stems.includes(gh[0]))){
+      if(gh[2]===D){ rows.push(['천간합 '+WX_HAN[gh[2]]+'화','일간 강화',0.5]); total+=0.5; }
+    }
+  }
+  total=Math.round(total*10)/10;
+  let verdict,desc,band;
+  if(total>=3){verdict='신강';band='strong';desc='일간이 뿌리·생조를 충분히 받아 단단합니다. 힘을 빼주는 글자가 용신.';}
+  else if(total>=1){verdict='중화 (신강 쪽)';band='strong';desc='균형이되 일간 쪽으로 살짝 기웁니다. 설기·극하는 글자를 우선 봅니다.';}
+  else if(total>-1){verdict='중화';band='mid';desc='강약이 팽팽합니다. 조후(한난)를 우선 기준으로 용신을 잡습니다.';}
+  else if(total>-3){verdict='중화 (신약 쪽)';band='weak';desc='일간이 다소 약합니다. 받쳐주는 인성·비겁을 우선 봅니다.';}
+  else {verdict='신약';band='weak';desc='일간의 뿌리가 약합니다. 생조하는 글자가 용신.';}
+  return {rows,total,verdict,desc,band};
+}
+function catLabel(w,D){const c=catOf(w,D);return c?'('+c+')':'';}
+
+/* ======================= 한난조습 (STEP 3) ======================= */
+function climate(P){
+  // 화 글자 +, 수 글자 - , 월령 계절 가중
+  let net=0; const all=[P.year,P.month,P.day,P.hour];
+  for(const p of all){
+    const gw=GAN_WX[p.stem], jw=JI_WX[p.branch];
+    if(gw===1) net+=1; if(gw===4) net-=1;
+    if(jw===1) net+=1; if(jw===4) net-=1;
+  }
+  // 월령
+  const mb=P.month.branch;
+  if([11,0,1].includes(mb)) net-=2;       // 해자축 겨울
+  else if([5,6,7].includes(mb)) net+=2;   // 사오미 여름
+  else if([2,3,4].includes(mb)) net+=0.5; // 인묘진 봄(온)
+  else net-=0.5;                          // 신유술 가을(량)
+  net=Math.round(net*10)/10;
+  let label,need;
+  if(net<=-2){label='한(寒) — 차다';need=1;}        // 화 필요
+  else if(net>=2){label='열(熱) — 덥다';need=4;}      // 수 필요
+  else {label='평(平) — 치우치지 않음';need=-1;}
+  return {net,label,need};
+}
+
+/* ======================= 용신 (STEP 2·4) ======================= */
+function yongsin(P,st,cl){
+  const D=GAN_WX[P.day.stem];
+  // 억부 후보 오행 (설기/극 or 생조)
+  let abu=[]; // 우선순위 오행 배열
+  if(st.total>=1){            // 신강계열 → 관>재>식
+    abu=[ (D+2)%5, (function(){for(let x=0;x<5;x++) if(ctrl(D,x)) return x;})(), (D+1)%5 ];
+    // 관성=극아= X where ctrl(X,D) → (D-2)%5 ; 재성=아극=(D+2)%5 ; 식상=아생=(D+1)%5
+    const gwan=((D-2)%5+5)%5, jae=(D+2)%5, sik=(D+1)%5;
+    abu=[gwan,jae,sik];
+  } else if(st.total<=-1){    // 신약계열 → 인>비
+    const ins=((D-1)%5+5)%5; abu=[ins,D];
+  } else {                    // 중화 → 조후 우선, 보조로 균형
+    abu=[];
+  }
+  // 조후 후보
+  let cand;
+  if(cl.need>=0){ // 한난 치우침 뚜렷
+    cand=cl.need;
+    // 억부와 충돌 점검: 억부 1순위가 조후를 끄면 조후 우선
+  } else if(abu.length){
+    cand=abu[0];
+  } else {
+    // 중화+평 → 가장 부족한 오행 보충
+    const cnt=[0,0,0,0,0];
+    [P.year,P.month,P.day,P.hour].forEach(p=>{cnt[GAN_WX[p.stem]]++;cnt[JI_WX[p.branch]]++;});
+    cand=cnt.indexOf(Math.min(...cnt));
+  }
+  // 조후가 뚜렷한데 억부 1순위와 같으면 그대로, 다르면 조후를 용신/억부를 희신 보조
+  let U=cand;
+  if(cl.need>=0 && abu.length){
+    if(abu.includes(cl.need)) U=cl.need;       // 둘 다 지목 → 강한 확신
+    else U=cl.need;                            // 조후 우선 (극한 한열은 생존 문제)
+  } else if(abu.length){
+    U=abu[0];
+  }
+  const hee=((U-1)%5+5)%5;   // 용신을 생 (생U)
+  const gi =(U+3)%5;         // 용신을 극 (극U)
+  const gu =((gi-1)%5+5)%5;  // 기신을 생 (적을 돕는 것)
+  const han=[0,1,2,3,4].find(w=>![U,hee,gi,gu].includes(w));
+  const both=(cl.need>=0&&abu.includes(cl.need));
+  return {U,hee,gi,gu,han,both,abuList:abu};
+}
+
+/* ======================= 대운 (STEP 6) ======================= */
+function daewoon(chart,gender){
+  const P=chart.pillars;
+  const yang=(P.year.stem%2===0);
+  const forward=(yang&&gender==='M')||(!yang&&gender==='F');
+  let prev=null,next=null;
+  for(const nd of chart.nodes){ if(nd.date<=chart.birth) prev=nd; else {next=nd;break;} }
+  const MS=86400000;
+  const days=forward?Math.round((next.date-chart.birth)/MS):Math.round((chart.birth-prev.date)/MS);
+  const startAge=Math.max(1,Math.round(days/3));
+  const mIdx=gzIndex(P.month.stem,P.month.branch);
+  const list=[];
+  for(let i=1;i<=8;i++){
+    const idx=((mIdx+(forward?i:-i))%60+60)%60;
+    list.push({age:startAge+(i-1)*10,stem:idx%10,branch:idx%12});
+  }
+  return {forward,startAge,list};
+}
+
+/* ======================= 렌더 ======================= */
+function wxColor(w){return getComputedStyle(document.documentElement).getPropertyValue(WX_VAR[w]).trim();}
+
+function render(){
+  const dv=document.getElementById('bdate').value;
+  const tv=document.getElementById('btime').value||'12:00';
+  if(!dv){ return; }
+  let [y,m,d]=dv.split('-').map(Number);
+  let [hh,mm]=tv.split(':').map(Number);
+  if(document.getElementById('optLong').checked){
+    let t=hh*60+mm-32; if(t<0){t+=1440; d-=1;} hh=Math.floor(t/60); mm=t%60;
+  }
+  const gender=document.querySelector('#genderSeg button[aria-pressed=true]').dataset.g;
+  const showHidden=document.getElementById('optHidden').checked;
+
+  const chart=computeChart(y,m,d,hh,mm);
+  const P=chart.pillars;
+  const D=GAN_WX[P.day.stem], DY=P.day.stem%2;
+  const st=strength(P);
+  const cl=climate(P);
+  const yg=yongsin(P,st,cl);
+  const dw=daewoon(chart,gender);
+
+  const order=[['year','년주'],['month','월주'],['day','일주'],['hour','시주']];
+  const verifyStr=order.map(([k])=>GAN_KO[P[k].stem]+JI_KO[P[k].branch]).join(' · ');
+
+  /* 원국 */
+  let pill='';
+  for(const [k,tag] of order){
+    const p=P[k]; const me=(k==='day');
+    const gw=GAN_WX[p.stem], jw=JI_WX[p.branch];
+    const topGod = me?'<span style="color:var(--ju)">일간 · 我</span>':tenGod(D,DY,gw,p.stem%2);
+    const jiMainStem=HIDDEN[p.branch][HIDDEN[p.branch].length-1];
+    const jiGod=tenGod(D,DY,GAN_WX[jiMainStem],jiMainStem%2);
+    const hid=HIDDEN[p.branch].map(g=>GAN[g]).join('');
+    pill+=`<div class="pillar${me?' me':''}">
+      <div class="ptag">${tag}</div>
+      <div class="god-top">${topGod}</div>
+      <div class="glyph" style="color:${wxColor(gw)}">${GAN[p.stem]}<small>${GAN_KO[p.stem]} ${WX_HAN[gw]}</small></div>
+      <div class="glyph" style="color:${wxColor(jw)}">${JI[p.branch]}<small>${JI_KO[p.branch]} ${WX_HAN[jw]}</small></div>
+      <div class="ji-god">${jiGod}</div>
+      ${showHidden?`<div class="hidden">지장간 ${hid}</div>`:''}
+    </div>`;
+  }
+
+  /* 오행 분포 */
+  const wxCnt=[0,0,0,0,0];
+  for(const [k] of order){ wxCnt[GAN_WX[P[k].stem]]++; wxCnt[JI_WX[P[k].branch]]++; }
+  let wxBars='';
+  for(let w=0;w<5;w++){
+    const pct=(wxCnt[w]/8*100).toFixed(0);
+    wxBars+=`<div class="bar-row"><span class="nm" style="color:${wxColor(w)}">${WX_KO[w]}(${WX_HAN[w]})</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${pct}%;background:${wxColor(w)}"></span></span>
+      <span class="vl">${wxCnt[w]}</span></div>`;
+  }
+
+  /* 십신 분포 */
+  const godCnt={};
+  ['year','month','hour'].forEach(k=>{const g=tenGod(D,DY,GAN_WX[P[k].stem],P[k].stem%2);godCnt[g]=(godCnt[g]||0)+1;});
+  for(const [k] of order){const mn=HIDDEN[P[k].branch][HIDDEN[P[k].branch].length-1];const g=tenGod(D,DY,GAN_WX[mn],mn%2);godCnt[g]=(godCnt[g]||0)+1;}
+  const godOrder=['비견','겁재','식신','상관','편재','정재','편관','정관','편인','정인'];
+  const maxG=Math.max(...godOrder.map(g=>godCnt[g]||0),1);
+  let godBars='';
+  for(const g of godOrder){ if(!godCnt[g]) continue;
+    const v=godCnt[g]; const pct=(v/maxG*100).toFixed(0);
+    godBars+=`<div class="bar-row"><span class="nm">${g}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${pct}%;background:var(--ink-soft)"></span></span>
+      <span class="vl">${v}</span></div>`;
+  }
+
+  /* 강약표 */
+  let scoreRows='';
+  for(const [nm,det,pt] of st.rows){
+    const cls=pt>=0?'pos':'neg'; const sign=pt>0?'+':'';
+    scoreRows+=`<tr><td>${nm}</td><td style="color:var(--ink-soft)">${det}</td><td class="pt ${cls}">${sign}${pt}</td></tr>`;
+  }
+
+  /* 한난 게이지 위치: net -5..+5 -> 0..100% */
+  const needlePos=Math.max(0,Math.min(100,(cl.net+5)/10*100));
+
+  /* 용신 패널 */
+  const roleData=[
+    ['용신',yg.U,'primary'],['희신',yg.hee,''],['기신',yg.gi,''],['한신',yg.han,''],['구신',yg.gu,'']
+  ];
+  let yongCards='';
+  for(const [role,w,extra] of roleData){
+    yongCards+=`<div class="yong ${extra}" style="${extra?`border-color:${wxColor(w)}`:''}">
+      <span class="accent" style="background:${wxColor(w)}"></span>
+      <div class="role">${role}</div>
+      <div class="yong-glyph" style="color:${wxColor(w)}">${WX_HAN[w]}</div>
+      <div class="yong-cat">${WX_KO[w]} · ${catOf(w,D)||'—'}</div>
+    </div>`;
+  }
+
+  /* 대운 */
+  const today=new Date(); let age=today.getFullYear()-y; 
+  const bd=new Date(y,m-1,d); const td=new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  if(td<new Date(today.getFullYear(),m-1,d)) age--;
+  let dwCells='';
+  dw.list.forEach((x,i)=>{
+    const lo=x.age, hi=x.age+10; const now=(age>=lo&&age<hi);
+    const dg=tenGod(D,DY,GAN_WX[x.stem],x.stem%2);
+    const isYong=(GAN_WX[x.stem]===yg.U||JI_WX[x.branch]===yg.U);
+    dwCells+=`<div class="dw${now?' now':''}">
+      <div class="age">${x.age}~${x.age+9}세</div>
+      <div class="gz" style="color:${isYong?wxColor(yg.U):'var(--ink)'}">${GAN[x.stem]}${JI[x.branch]}</div>
+      <div class="dg">${GAN_KO[x.stem]}${JI_KO[x.branch]} · ${dg}</div>
+    </div>`;
+  });
+
+  /* 해석 */
+  const yongCat=catOf(yg.U,D), giCat=catOf(yg.gi,D);
+  const dayDesc=`${GAN_KO[P.day.stem]}${WX_HAN[D]} 일간`;
+  const climateLine = cl.need===1?'한기가 강해 <span class="key">화(火)</span>로 데우고 단련해야 합니다'
+                    : cl.need===4?'열기가 강해 <span class="key">수(水)</span>로 식혀야 합니다'
+                    : '한난이 치우치지 않아 억부·균형으로 용신을 잡습니다';
+  const yongFlavor = {0:'뻗어나가는 기운 · 시작과 명분',1:'밝히는 불 · 명예와 표현',2:'중심을 잡는 땅 · 안정과 신뢰',3:'다듬는 쇠 · 결단과 구조',4:'흐르는 물 · 지혜와 융통'}[yg.U];
+  const read=`
+    <p>일간은 <span class="key">${dayDesc}</span>, 강약은 <span class="key">${st.verdict}</span>(${st.total>0?'+':''}${st.total}점)으로 나옵니다. ${st.desc}</p>
+    <p>한난조습은 <span class="key">${cl.label}</span> 쪽이라, ${climateLine}.</p>
+    <p>두 축을 합치면 용신은 <span class="key">${WX_KO[yg.U]}(${WX_HAN[yg.U]}) · ${yongCat}</span> — ${yongFlavor}. ${yg.both?'억부와 조후가 같은 오행을 가리켜 판정이 안정적입니다.':'조후를 우선 기준으로 잡은 용신입니다.'} 이를 살려주는 <span class="key">${WX_KO[yg.hee]}</span>가 희신, 용신을 끄는 <span class="key">${WX_KO[yg.gi]}(${giCat})</span>가 기신입니다.</p>
+    <p>대운은 ${dw.forward?'순행':'역행'}, ${dw.startAge}세 입운. 용신 오행이 천간·지지로 들어오는 대운(위 강조 표시)에서 흐름이 가장 트입니다.</p>
+  `;
+
+  document.getElementById('out').innerHTML=`
+    <section class="block">
+      <div class="sec-head"><span class="sec-num">一</span><h2>사주 원국</h2><span class="sub">${chart.sajuYear}년주 기준</span></div>
+      <p class="verify">세운 결과 &nbsp; <b>${verifyStr}</b></p>
+      <div class="pillars">${pill}</div>
+    </section>
+
+    <section class="block">
+      <div class="sec-head"><span class="sec-num">二</span><h2>오행 · 십신 분포</h2></div>
+      <div class="two">
+        <div><div style="font-size:12px;color:var(--ink-faint);letter-spacing:.1em;margin-bottom:8px">오행 (8글자)</div>${wxBars}</div>
+        <div><div style="font-size:12px;color:var(--ink-faint);letter-spacing:.1em;margin-bottom:8px">십신</div>${godBars}</div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="sec-head"><span class="sec-num">三</span><h2>일간 강약</h2><span class="sub">억부 점수</span></div>
+      <table class="score-table"><thead><tr><th>항목</th><th>내용</th><th style="text-align:right">점수</th></tr></thead><tbody>${scoreRows}</tbody></table>
+      <div class="score-total">
+        <span class="num" style="color:${st.total>=0?'var(--w0)':'var(--ju)'}">${st.total>0?'+':''}${st.total}</span>
+        <span class="verdict">${st.verdict}</span>
+        <span class="desc">${st.desc}</span>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="sec-head"><span class="sec-num">四</span><h2>한난조습</h2><span class="sub">조후</span></div>
+      <div class="gauge"><div class="needle" style="left:${needlePos}%"></div></div>
+      <div class="gauge-labels"><span>寒 차다</span><span>${cl.label} (${cl.net>0?'+':''}${cl.net})</span><span>덥다 熱</span></div>
+    </section>
+
+    <section class="block">
+      <div class="sec-head"><span class="sec-num">五</span><h2>용신 · 희신 · 기신</h2><span class="sub">억부 ∩ 조후</span></div>
+      <div class="yong-grid">${yongCards}</div>
+    </section>
+
+    <section class="block">
+      <div class="sec-head"><span class="sec-num">六</span><h2>대운 흐름</h2><span class="sub">${dw.forward?'순행':'역행'} · ${dw.startAge}세 입운</span></div>
+      <div class="dw-track">${dwCells}</div>
+    </section>
+
+    <section class="block">
+      <div class="sec-head"><span class="sec-num">七</span><h2>해석 요약</h2></div>
+      <div class="read">${read}</div>
+    </section>
+  `;
+  document.getElementById('noteBox').style.display='block';
+  document.getElementById('out').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ======================= 이벤트 ======================= */
+document.getElementById('genderSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#genderSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+});
+document.getElementById('runBtn').addEventListener('click',render);
+document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&(e.target.tagName==='INPUT')) render(); });
+/* 첫 진입 자동 산출 */
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>부적집 — 용신찾기</title>
+<!-- 웹폰트: 오프라인이면 시스템 명조로 폴백 (단일 파일 유지, 외부 의존은 폰트뿐) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Serif+KR:wght@400;600;900&family=Noto+Serif+TC:wght@900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#241710;          /* 딥 브라운 */
+    --bg-2:#2B1C12;        /* 카드 브라운 */
+    --bg-deep:#170E08;     /* 인풋/글리프 카드 */
+    --gold:#C9A76A;        /* 기본 골드 */
+    --gold-strong:#E7C887; /* 타이틀 골드 */
+    --gold-bright:#EFDCAE; /* 밝은 크림골드 */
+    --gold-dim:#A98F62;    /* 흐린 골드 */
+    --gold-faint:#8A6F45;  /* 보더 어두운 골드 */
+    --cream:#F2E2BB;       /* 결과 타이틀 크림 */
+    --ink:#241811;         /* 버튼 위 어두운 글자 */
+    --serif:'Gowun Batang','Noto Serif KR','Nanum Myeongjo','AppleMyungjo','Batang','바탕',serif;
+    --serif-han:'Noto Serif KR','Noto Serif TC','Nanum Myeongjo','Batang',serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:var(--bg); color:var(--gold-bright);
+    font-family:var(--serif); line-height:1.6;
+    /* 육각 문양 + 은은한 비네트 */
+    background-image:
+      radial-gradient(ellipse at 50% 0%, rgba(255,220,150,.045) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 100%, rgba(0,0,0,.35) 0%, transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='194' viewBox='0 0 112 194'%3E%3Cg fill='none' stroke='%23C9A76A' stroke-opacity='.05' stroke-width='1'%3E%3Cpath d='M56 1 L110 32 L110 96 L56 129 L2 96 L2 32 Z'/%3E%3Cpath d='M0 98 L2 96 M110 96 L112 98 M56 129 L56 193 M0 162 L56 129 M112 162 L56 129'/%3E%3C/g%3E%3C/svg%3E");
+    background-attachment:fixed;
+  }
+  .screen{display:none; min-height:100vh; flex-direction:column; align-items:center;}
+  .screen.on{display:flex;}
+  .frame{width:min(1160px,92vw); margin:0 auto; padding:34px 0 60px; flex:1; display:flex; flex-direction:column;}
+
+  /* ---- 공통 ---- */
+  .back{
+    align-self:flex-start; display:inline-flex; align-items:center; gap:7px;
+    border:1px solid var(--gold-faint); color:var(--gold); background:transparent;
+    font-family:inherit; font-size:13px; letter-spacing:.08em; cursor:pointer;
+    padding:7px 16px; border-radius:999px; transition:.15s;
+  }
+  .back:hover{border-color:var(--gold); color:var(--gold-strong);}
+  .eyebrow{font-size:clamp(15px,1.6vw,19px); letter-spacing:.34em; color:var(--gold); text-align:center; margin:0 0 6px; font-weight:700;}
+  h1.title{
+    font-size:clamp(38px,6vw,66px); font-weight:700; letter-spacing:.12em;
+    color:var(--gold-strong); text-align:center; margin:0 0 18px; line-height:1.15;
+    text-shadow:0 2px 14px rgba(231,200,135,.14);
+  }
+  .lede{color:#C4AC7F; text-align:center; font-size:clamp(13.5px,1.5vw,16px); margin:0 auto; max-width:62ch;}
+
+  .pill{
+    border:1px solid var(--gold-faint); color:#E3C994; background:transparent;
+    font-family:inherit; font-size:14px; padding:9px 22px; border-radius:999px;
+    cursor:pointer; letter-spacing:.04em; transition:.15s;
+  }
+  .pill:hover{border-color:var(--gold); background:rgba(201,167,106,.08);}
+
+  /* ---- 메인 ---- */
+  #scr-home .frame{justify-content:center;}
+  .langs{display:flex; gap:26px; justify-content:center; margin:0 0 40px; font-size:14px; letter-spacing:.06em;}
+  .langs a{color:#8F7A54; text-decoration:none; cursor:pointer; padding-bottom:3px;}
+  .langs a.on{color:var(--gold-bright); border-bottom:1px solid var(--gold);}
+  .home-sub{text-align:center; color:#C9B183; font-size:clamp(14px,1.6vw,18px); letter-spacing:.14em; margin:0 0 4px;}
+  .home-title{
+    text-align:center; font-size:clamp(52px,8vw,84px); color:var(--gold-strong);
+    letter-spacing:.16em; font-weight:700; margin:0 0 64px; line-height:1.1;
+    text-shadow:0 3px 22px rgba(231,200,135,.16);
+  }
+  .cards{display:flex; gap:34px; justify-content:center; flex-wrap:wrap;}
+  .card{
+    width:min(430px,88vw); border:1.5px solid var(--gold); border-radius:16px;
+    background:linear-gradient(160deg, #2E1E13 0%, #271A10 100%);
+    box-shadow:6px 8px 0 rgba(0,0,0,.35);
+    padding:44px 26px 40px; text-align:center; cursor:pointer; position:relative;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .card:hover{transform:translateY(-3px); box-shadow:8px 12px 0 rgba(0,0,0,.4);}
+  .card .icon{
+    width:64px; height:64px; margin:0 auto 18px; border-radius:50%;
+    background:var(--gold); color:var(--ink); display:grid; place-items:center;
+    font-size:28px; font-weight:700;
+  }
+  .card h2{margin:0 0 10px; font-size:clamp(22px,2.6vw,30px); letter-spacing:.1em; color:var(--gold-bright); font-weight:700;}
+  .card p{margin:0; color:var(--gold-dim); font-size:14px; letter-spacing:.06em;}
+  .card.disabled{opacity:.55; cursor:default;}
+  .card.disabled:hover{transform:none; box-shadow:6px 8px 0 rgba(0,0,0,.35);}
+  .card .soon{
+    position:absolute; top:16px; right:16px; font-size:11px; letter-spacing:.14em;
+    border:1px solid var(--gold-faint); color:var(--gold-dim); border-radius:999px; padding:3px 10px;
+  }
+
+  /* ---- 용신찾기 입력 ---- */
+  .form-wrap{width:min(760px,100%); margin:60px auto 0;}
+  .flabel{font-size:15px; color:#D9BE8C; letter-spacing:.12em; font-weight:700; margin:0 0 10px;}
+  .selects{display:flex; gap:12px; flex-wrap:wrap;}
+  select{
+    appearance:none; -webkit-appearance:none;
+    background:var(--bg-deep) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23C9A76A' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") no-repeat right 13px center;
+    border:1px solid var(--gold-faint); color:#E4CFA3; border-radius:8px;
+    font-family:inherit; font-size:14.5px; padding:11px 36px 11px 14px; cursor:pointer;
+    letter-spacing:.03em;
+  }
+  select:focus{outline:1.5px solid var(--gold); border-color:var(--gold);}
+  select:invalid{color:#9A8258;}
+  .row{margin:0 0 30px;}
+  .radios{display:flex; gap:26px;}
+  .radios label{display:flex; align-items:center; gap:9px; cursor:pointer; font-size:15px; color:#E4CFA3;}
+  .radios input{
+    appearance:none; width:17px; height:17px; border-radius:50%;
+    border:1.5px solid var(--gold-faint); background:transparent; cursor:pointer; margin:0;
+  }
+  .radios input:checked{border-color:var(--gold); background:var(--gold); box-shadow:inset 0 0 0 3.5px var(--bg);}
+  .find-row{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; flex-wrap:wrap;}
+  .btn-find{
+    width:clamp(120px,14vw,150px); aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #DFC085 0%, #C9A76A 55%, #B08D57 100%);
+    color:var(--ink); border:0; cursor:pointer; font-family:inherit;
+    font-size:clamp(19px,2vw,24px); font-weight:700; letter-spacing:.18em;
+    box-shadow:0 8px 24px rgba(0,0,0,.4), inset 0 -3px 8px rgba(0,0,0,.18);
+    transition:transform .12s, box-shadow .12s; margin-left:auto;
+  }
+  .btn-find:hover{transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.45), inset 0 -3px 8px rgba(0,0,0,.18);}
+  .btn-find:active{transform:translateY(1px);}
+
+  /* ---- 결과 ---- */
+  #scr-result .frame{align-items:center;}
+  .r-title{
+    font-size:clamp(40px,6vw,68px); color:var(--cream); font-weight:700;
+    letter-spacing:.06em; margin:26px 0 30px; text-align:center; line-height:1.15;
+    text-shadow:0 3px 18px rgba(242,226,187,.12);
+  }
+  .r-copy{text-align:center; font-size:clamp(15px,1.9vw,19.5px); color:#E3D0A6; margin:0 0 8px; line-height:2.05;}
+  .r-copy b{color:var(--gold-strong); font-weight:700;}
+  .r-soft{text-align:center; font-size:13px; color:#9A8258; margin:10px 0 0;}
+  .glyph-stage{display:flex; align-items:center; gap:clamp(18px,5vw,64px); margin:14px 0 10px;}
+  .g-arrow{
+    width:44px; height:44px; border-radius:50%; border:1px solid var(--gold-faint);
+    background:transparent; color:var(--gold); font-size:19px; cursor:pointer;
+    display:grid; place-items:center; transition:.15s; font-family:inherit;
+  }
+  .g-arrow:hover{border-color:var(--gold); color:var(--gold-strong);}
+  #glyphBox{
+    min-width:clamp(220px,32vw,330px); height:clamp(230px,34vw,340px);
+    display:grid; place-items:center;
+  }
+  .glyph-char{
+    font-family:var(--serif-han); color:#D9B879; line-height:1;
+    font-size:clamp(170px,26vw,265px); font-weight:900;
+    text-shadow:0 4px 26px rgba(217,184,121,.22);
+  }
+  .g-style-nm{font-size:12px; color:#9A8258; letter-spacing:.16em; text-align:center; margin:2px 0 26px;}
+  .r-btns{display:flex; gap:14px; flex-wrap:wrap; justify-content:center;}
+
+  /* ---- 모달 공통 ---- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(10,5,2,.74); z-index:40;
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .overlay.on{display:flex;}
+  .modal{
+    position:relative; background:linear-gradient(165deg,#2E1D10 0%, #271808 100%);
+    border:1.5px solid var(--gold-faint); border-radius:12px;
+    width:min(620px,94vw); padding:36px 30px 30px; text-align:center;
+    box-shadow:0 22px 60px rgba(0,0,0,.6);
+  }
+  .modal h3{margin:0 0 18px; font-size:clamp(22px,3vw,30px); color:var(--gold-strong); letter-spacing:.1em; font-weight:700;}
+  .modal .m-body{font-size:14.5px; color:#E0CBA0; line-height:1.95; margin:0 0 22px;}
+  .m-close{
+    position:absolute; top:-14px; right:-14px; width:34px; height:34px; border-radius:50%;
+    border:1px solid var(--gold-faint); background:var(--bg); color:var(--gold);
+    font-size:15px; cursor:pointer; font-family:inherit;
+  }
+  .m-close:hover{border-color:var(--gold); color:var(--gold-strong);}
+
+  /* 다운로드 모달 */
+  .amulets{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin:6px 0 14px;}
+  .amulet{
+    width:118px; background:#0E0803; border:1px solid #5C4A2E; border-radius:6px;
+    padding:14px 8px 12px; display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .amulet .a-glyph{font-family:var(--serif-han); color:#D9B879; font-size:58px; line-height:1.15; font-weight:900; height:66px; display:grid; place-items:center;}
+  .amulet canvas{image-rendering:pixelated;}
+  .amulet button{
+    border:1px solid var(--gold-faint); background:transparent; color:var(--gold);
+    font-family:inherit; font-size:12px; border-radius:5px; padding:5px 12px; cursor:pointer;
+  }
+  .amulet button:hover{border-color:var(--gold); color:var(--gold-strong);}
+  .m-caption{font-size:12.5px; color:#B99C6B; margin:4px 0 0;}
+
+  /* 구매 모달 */
+  .samples{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin:4px 0 20px;}
+  .sample{
+    width:150px; height:96px; border:1px solid var(--gold-faint); border-radius:6px;
+    display:grid; place-items:center; color:var(--gold-dim); font-size:13px; letter-spacing:.08em;
+  }
+  .badge{
+    display:inline-block; border:1px solid var(--gold-faint); border-radius:999px;
+    color:#D9BE8C; font-size:13px; padding:7px 20px; letter-spacing:.06em;
+  }
+
+  /* 토스트 */
+  #toast{
+    position:fixed; left:50%; bottom:34px; transform:translateX(-50%) translateY(20px);
+    background:#2E1D10; border:1px solid var(--gold-faint); color:#E4CFA3;
+    padding:11px 22px; border-radius:999px; font-size:13.5px; opacity:0; pointer-events:none;
+    transition:.25s; z-index:60; letter-spacing:.04em; white-space:nowrap;
+  }
+  #toast.on{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  /* 오류 폴백 (§10-E) */
+  #scr-error .frame{justify-content:center; align-items:center; text-align:center;}
+  #scr-error .boom{font-size:clamp(46px,7vw,72px); color:var(--gold-strong); font-weight:700; letter-spacing:.1em; margin:0 0 18px;}
+  #scr-error p{color:#D9BE8C; font-size:16px; margin:0 0 34px;}
+
+  footer{
+    width:100%; text-align:center; padding:18px 0 26px;
+    color:#6E5836; font-size:11.5px; letter-spacing:.1em;
+  }
+  @media (max-width:640px){
+    .btn-find{margin:8px auto 0;}
+    .find-row{justify-content:center;}
+    .m-close{right:2px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ 00. 메인 ═══════════ -->
+<section class="screen on" id="scr-home">
+  <div class="frame">
+    <nav class="langs" aria-label="언어 선택">
+      <a class="on">한국어</a><a data-soon>日本語</a><a data-soon>中文</a><a data-soon>English</a>
+    </nav>
+    <p class="home-sub">당신에게 복을 가져다 주는</p>
+    <h1 class="home-title">부적집</h1>
+    <div class="cards">
+      <div class="card" id="cardYongsin" role="button" tabindex="0">
+        <div class="icon">⊕</div>
+        <h2>용신찾기</h2>
+        <p>생년월일시를 알고 있는 경우</p>
+      </div>
+      <div class="card disabled" aria-disabled="true">
+        <span class="soon">준비중</span>
+        <div class="icon">🗓</div>
+        <h2>60간지찾기</h2>
+        <p>생년월일을 알고 있는 경우</p>
+      </div>
+    </div>
+  </div>
+  <footer>부적집 · 명리 기반 재미 서비스 — 데이터는 저장되지 않습니다</footer>
+</section>
+
+<!-- ═══════════ 01. 용신찾기 입력 ═══════════ -->
+<section class="screen" id="scr-find">
+  <div class="frame">
+    <button class="back" data-home>← 홈으로</button>
+    <p class="eyebrow" style="margin-top:34px">부적집</p>
+    <h1 class="title">용신찾기</h1>
+    <p class="lede">좀 더 균형잡힌 삶을 위해 사주에 부족하거나 넘치는 기운을 알아봅니다. 단, 재미로 봅시다! :)</p>
+
+    <div class="form-wrap">
+      <div class="row">
+        <p class="flabel">생년월일시</p>
+        <div class="selects">
+          <select id="selY" required></select>
+          <select id="selM" required></select>
+          <select id="selD" required></select>
+          <select id="selH" required>
+            <option value="" selected>태어난 시각</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <p class="flabel">성별</p>
+        <div class="radios">
+          <label><input type="radio" name="gender" value="M">남자</label>
+          <label><input type="radio" name="gender" value="F">여자</label>
+        </div>
+      </div>
+      <div class="find-row">
+        <div style="flex:1; min-width:250px">
+          <p class="flabel">태어난 도시</p>
+          <div class="selects"><select id="selCity" style="min-width:250px"></select></div>
+        </div>
+        <button class="btn-find" id="btnFind">찾기</button>
+      </div>
+    </div>
+  </div>
+  <footer>절기는 근사 계산(1900–2099)입니다 · 상세 정책: 용신산출 정책명세서</footer>
+</section>
+
+<!-- ═══════════ 01-1. 결과 ═══════════ -->
+<section class="screen" id="scr-result">
+  <div class="frame">
+    <button class="back" data-home>← 홈으로</button>
+    <h1 class="r-title">찾았다, 요놈!</h1>
+    <p class="r-copy" id="rCopy"></p>
+    <p class="r-soft" id="rSoft" style="display:none">이 사주는 중화에 가까워 해석의 여지가 있어요. 참고용으로 봐주세요.</p>
+    <div class="glyph-stage">
+      <button class="g-arrow" id="gPrev" aria-label="이전 서체">‹</button>
+      <div id="glyphBox"></div>
+      <button class="g-arrow" id="gNext" aria-label="다음 서체">›</button>
+    </div>
+    <p class="g-style-nm" id="gStyleNm"></p>
+    <div class="r-btns">
+      <button class="pill" id="btnDownload">용신부적 다운로드</button>
+      <button class="pill" id="btnBuy">용신부적 구매하기</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 오류 폴백 (§10-E) ═══════════ -->
+<section class="screen" id="scr-error">
+  <div class="frame">
+    <p class="boom">띠용!</p>
+    <p>일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.</p>
+    <button class="pill" data-home>처음으로 돌아가기</button>
+  </div>
+</section>
+
+<!-- 모달: 출생 시각 모름 (§10-A) -->
+<div class="overlay" id="ovTime">
+  <div class="modal">
+    <button class="m-close" data-close>✕</button>
+    <h3>잠깐!</h3>
+    <p class="m-body">태어난 시(時)를 알아야 용신을 정확히 뽑을 수 있어요.<br>
+    시각을 모른다면 가족에게 물어보거나, 출생증명서를 확인해보세요.</p>
+    <button class="pill" data-close>시각 입력하러 가기</button>
+  </div>
+</div>
+
+<!-- 모달: 용신부적 다운로드 -->
+<div class="overlay" id="ovDown">
+  <div class="modal" style="width:min(660px,94vw)">
+    <button class="m-close" data-close>✕</button>
+    <h3 id="downTitle" style="font-size:clamp(17px,2.2vw,21px)">당신의 밸런스잡힌 삶을 위한 온라인 용신부적들 :D</h3>
+    <div class="amulets" id="amuletGrid"></div>
+    <p class="m-caption">부적을 눌러 이미지로 저장하세요</p>
+  </div>
+</div>
+
+<!-- 모달: 용신부적 구매하기 -->
+<div class="overlay" id="ovBuy">
+  <div class="modal" style="width:min(640px,94vw)">
+    <button class="m-close" data-close>✕</button>
+    <h3>용신부적 구매안내</h3>
+    <p class="m-body">부적집을 구매하면 세상에 하나뿐인 내 용신부적이 생긴다!<br>
+    부적집 구입 후 카운터에 요청해주세요.<br>
+    부적집은 매장 입구 왼편에 있습니다.<br>
+    원하는 문구로 예쁘게 써드립니다.</p>
+    <div class="samples">
+      <div class="sample">부적집 샘플</div>
+      <div class="sample">부적집 샘플</div>
+      <div class="sample">부적집 샘플</div>
+    </div>
+    <span class="badge">부적제작 예상시간 : 5분</span>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ═══════════════ 엔진 (용신산출_정책명세서 §1~§6 — yongsin.html과 동일 로직) ═══════════════ */
+const GAN=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const JI =['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const JI_KO=['자','축','인','묘','진','사','오','미','신','유','술','해'];
+const GAN_WX=[0,0,1,1,2,2,3,3,4,4];
+const JI_WX =[4,2,0,0,2,1,1,2,3,3,2,4];
+const WX_KO=['목','화','토','금','수'];
+const WX_HAN=['木','火','土','金','水'];
+const SAMHAP=[{set:[8,0,4],wx:4},{set:[2,6,10],wx:1},{set:[5,9,1],wx:3},{set:[11,3,7],wx:0}];
+const GANHAP=[[0,5,2],[1,6,3],[2,7,4],[3,8,0],[4,9,1]];
+const TERM_MONTH=[1,2,3,4,5,6,7,8,9,10,11,12];
+const TERM_JI=[1,2,3,4,5,6,7,8,9,10,11,0];
+const C20=[6.11,4.6295,6.3826,5.59,6.318,6.5,7.928,8.35,8.44,9.098,8.218,7.9];
+const C21=[5.4055,3.87,5.63,4.81,5.52,5.678,7.108,7.5,7.646,8.318,7.438,7.18];
+const tdy=(yr,i)=>{const Y=yr%100;const C=yr>=2000?C21[i]:C20[i];return Math.floor(Y*0.2422+C)-Math.floor(Y/4);};
+const tdate=(yr,i)=>new Date(yr,TERM_MONTH[i]-1,tdy(yr,i));
+const gen=(a,b)=>(a+1)%5===b;
+const ctrl=(a,b)=>(a+2)%5===b;
+function catOf(X,D){
+  if(X===D) return '비겁';
+  if(gen(X,D)) return '인성';
+  if(gen(D,X)) return '식상';
+  if(ctrl(D,X)) return '재성';
+  if(ctrl(X,D)) return '관성';
+  return '';
+}
+function jdn(y,m,d){const a=Math.floor((14-m)/12),yy=y+4800-a,mm=m+12*a-3;
+  return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;}
+function buildNodes(y){
+  let nodes=[{date:tdate(y-1,11),ji:TERM_JI[11]}];
+  for(let i=0;i<12;i++) nodes.push({date:tdate(y,i),ji:TERM_JI[i]});
+  nodes.push({date:tdate(y+1,0),ji:TERM_JI[0]});
+  nodes.sort((a,b)=>a.date-b.date);
+  return nodes;
+}
+function computeChart(y,m,d,hh,mm){
+  const birth=new Date(y,m-1,d,hh,mm);
+  const dIdx=((jdn(y,m,d)+49)%60+60)%60;
+  const dStem=dIdx%10, dBranch=dIdx%12;
+  const ipchun=tdate(y,1);
+  const sajuYear=(birth<ipchun)?y-1:y;
+  const yStem=((sajuYear-4)%10+10)%10, yBranch=((sajuYear-4)%12+12)%12;
+  const nodes=buildNodes(y);
+  let mBranch=0; for(const nd of nodes){ if(nd.date<=birth) mBranch=nd.ji; else break; }
+  const huDun=[2,4,6,8,0]; const yinStem=huDun[yStem%5];
+  const off=((mBranch-2)%12+12)%12; const mStem=(yinStem+off)%10;
+  const hBranch=Math.floor(((hh+1)%24)/2);
+  const shuDun=[0,2,4,6,8]; const ziStem=shuDun[dStem%5]; const hStem=(ziStem+hBranch)%10;
+  return {birth,sajuYear,nodes,pillars:{
+    year:{stem:yStem,branch:yBranch}, month:{stem:mStem,branch:mBranch},
+    day:{stem:dStem,branch:dBranch}, hour:{stem:hStem,branch:hBranch}}};
+}
+function strength(P){
+  const D=GAN_WX[P.day.stem];
+  let total=0, s;
+  const mw=JI_WX[P.month.branch];
+  if(mw===D) s=3; else if(gen(mw,D)) s=2; else if(gen(D,mw)) s=-1; else if(ctrl(D,mw)) s=-2; else s=-3;
+  total+=s;
+  const jw=JI_WX[P.day.branch];
+  if(jw===D) s=2; else if(gen(jw,D)) s=1.5; else s=-1;
+  total+=s;
+  [P.year.stem,P.month.stem,P.hour.stem].forEach(st=>{
+    const c=catOf(GAN_WX[st],D);
+    total+=(c==='비겁'||c==='인성')?1:-0.5;
+  });
+  const branches=[P.year.branch,P.month.branch,P.day.branch,P.hour.branch];
+  for(const h of SAMHAP){
+    const cnt=h.set.filter(x=>branches.includes(x)).length;
+    if(cnt>=2){
+      const full=cnt===3; const c=catOf(h.wx,D);
+      total+=(c==='비겁'||c==='인성')?(full?1:0.5):(full?-1:-0.5);
+    }
+  }
+  const stems=[P.year.stem,P.month.stem,P.hour.stem];
+  for(const gh of GANHAP){
+    if((gh[0]===P.day.stem&&stems.includes(gh[1]))||(gh[1]===P.day.stem&&stems.includes(gh[0]))){
+      if(gh[2]===D) total+=0.5;
+    }
+  }
+  total=Math.round(total*10)/10;
+  let band; // strong=신강계열, mid=중화, weak=신약계열
+  if(total>=1) band='strong'; else if(total>-1) band='mid'; else band='weak';
+  return {total,band};
+}
+function climate(P){
+  let net=0;
+  for(const p of [P.year,P.month,P.day,P.hour]){
+    const gw=GAN_WX[p.stem], jw=JI_WX[p.branch];
+    if(gw===1)net+=1; if(gw===4)net-=1;
+    if(jw===1)net+=1; if(jw===4)net-=1;
+  }
+  const mb=P.month.branch;
+  if([11,0,1].includes(mb)) net-=2;
+  else if([5,6,7].includes(mb)) net+=2;
+  else if([2,3,4].includes(mb)) net+=0.5;
+  else net-=0.5;
+  net=Math.round(net*10)/10;
+  let need;
+  if(net<=-2) need=1; else if(net>=2) need=4; else need=-1;
+  return {net,need};
+}
+function yongsin(P,st,cl){
+  const D=GAN_WX[P.day.stem];
+  let abu=[];
+  if(st.total>=1){ const gwan=((D-2)%5+5)%5, jae=(D+2)%5, sik=(D+1)%5; abu=[gwan,jae,sik]; }
+  else if(st.total<=-1){ const ins=((D-1)%5+5)%5; abu=[ins,D]; }
+  let cand;
+  if(cl.need>=0){ cand=cl.need; }
+  else if(abu.length){ cand=abu[0]; }
+  else {
+    const cnt=[0,0,0,0,0];
+    [P.year,P.month,P.day,P.hour].forEach(p=>{cnt[GAN_WX[p.stem]]++;cnt[JI_WX[p.branch]]++;});
+    cand=cnt.indexOf(Math.min(...cnt));
+  }
+  let U=cand;
+  if(cl.need>=0&&abu.length) U=cl.need;   // 조후 우선 원칙 (§6-2)
+  else if(abu.length) U=abu[0];
+  const hee=((U-1)%5+5)%5;
+  const gi =(U+3)%5;
+  const gu =((gi-1)%5+5)%5;
+  const han=[0,1,2,3,4].find(w=>![U,hee,gi,gu].includes(w));
+  const both=(cl.need>=0&&abu.includes(cl.need));
+  return {U,hee,gi,gu,han,both,abuList:abu};
+}
+
+/* ═══════════════ 결과 문구 블록 (§11 — 조립 순서는 피그마 예시 B→A→C→D)
+   ★ 아래 문구는 개발용 draft. 전량 기획(도메인 전문가) 작성·감수로 교체할 것.
+   실서비스에선 DB/JSON 파일로 분리 관리(§11-6). {기신}·{용신} 등은 치환 변수. ═══════════════ */
+const PHRASES={
+  B:{ // 강약 진단
+    strong:"뭔가 부족하다기보다는 {기신}의 기운이 너무나 강한 당신!",
+    mid:"기운이 크게 치우치지 않아 팽팽하게 균형을 이루는 당신!",
+    weak:"기운이 여려서 든든하게 받쳐줄 힘이 필요한 당신!"
+  },
+  A:{ // 용신 선언
+    strong:"{기신}의 기운을 잠재우고, 힘을 빼주는 요소가 당신의 용신이다. 엣헴!",
+    mid:"모자란 구석을 살짝 채워주는 요소가 당신의 용신이다. 엣헴!",
+    weak:"당신을 북돋아 일으켜주는 요소가 당신의 용신이다. 엣헴!"
+  },
+  C:{ // 조후 보정 (한/열 뚜렷할 때만)
+    cold:"게다가 사주가 차게 얼어 있어, 따뜻한 기운이 이 냉기를 녹여줘요.",
+    hot:"게다가 사주가 뜨겁게 달아 있어, 시원한 기운이 이 열기를 식혀줘요."
+  },
+  D:{ // 부적 처방 (용신 오행 5종)
+    0:"쭉쭉 뻗는 나무의 힘으로 숨통을 틔워보는거 어때?",
+    1:"불의 힘으로 수마를 날려버리는거 어때?",
+    2:"든든한 땅의 힘으로 중심을 잡아보는거 어때?",
+    3:"단단한 쇠의 힘으로 딱 끊어내는거 어때?",
+    4:"흐르는 물의 힘으로 열기를 식혀보는거 어때?"
+  }
+};
+const WX_NAME=['나무','불','땅','쇠','물']; // 치환용 구어 명칭
+
+/* 12지시 (라벨은 KST +30분 관행. 시진 인덱스 = 시지. 자시는 선택 날짜 기준(조자시 취급, §3-6 자정 기준 정책) */
+const HOUR_SLOTS=JI_KO.map((k,i)=>{
+  const s=(23.5+i*2)%24, e=(s+2)%24;
+  const f=t=>String(Math.floor(t)).padStart(2,'0')+':'+(t%1?'30':'00');
+  return {idx:i, label:`${k}(${JI[i]})시 (${f(s)}-${f(e)})`};
+});
+/* 태어난 도시 — 시진 단위 입력에서는 분 단위 경도 보정이 결과에 영향 없음(기획 확인 필요, §3-6) */
+const CITIES=['서울','인천','경기','강원','대전·충청','광주·전라','대구·경북','부산·울산·경남','제주','기타·해외'];
+
+/* 부적 서체 4종 — 실서비스에선 캘리그래피 이미지로 교체 (renderer만 갈아끼우면 됨) */
+const GLYPH_STYLES=[
+  {nm:'해서체', css:"font-family:'Noto Serif KR','Noto Serif TC',serif; font-weight:900;"},
+  {nm:'명조체', css:"font-family:'Gowun Batang',serif; font-weight:700; transform:scaleY(1.06);"},
+  {nm:'흘림체', css:"font-family:'Gowun Batang',serif; font-weight:400; font-style:italic; transform:rotate(-6deg) skewX(-4deg);"},
+  {nm:'픽셀체', pixel:true}
+];
+
+/* ═══════════════ 화면 전환 ═══════════════ */
+const $=s=>document.querySelector(s);
+const $$=s=>document.querySelectorAll(s);
+let RESULT=null; // {U, hee, gi, both, band, net, styleIdx}
+
+function show(id){
+  $$('.screen').forEach(x=>x.classList.remove('on'));
+  $(id).classList.add('on');
+  window.scrollTo(0,0);
+}
+function toast(msg){
+  const t=$('#toast'); t.textContent=msg; t.classList.add('on');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('on'),2200);
+}
+function openOv(id){ $(id).classList.add('on'); }
+$$('.overlay').forEach(ov=>{
+  ov.addEventListener('click',e=>{ if(e.target===ov||e.target.closest('[data-close]')) ov.classList.remove('on'); });
+});
+$$('[data-home]').forEach(b=>b.addEventListener('click',()=>show('#scr-home')));
+$$('[data-soon]').forEach(a=>a.addEventListener('click',()=>toast('준비중이에요. 곧 만나요!')));
+$('#cardYongsin').addEventListener('click',()=>show('#scr-find'));
+$('#cardYongsin').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' ') show('#scr-find'); });
+
+/* ═══════════════ 입력 폼 구성 (§10-B: 드롭다운 제약으로 오류 원천 차단) ═══════════════ */
+function fillSelect(sel,items,selected){
+  sel.innerHTML='';
+  for(const it of items){
+    const o=document.createElement('option');
+    if(typeof it==='object'){ o.value=it.v; o.textContent=it.t; } else { o.value=it; o.textContent=it; }
+    if(String(selected)===String(o.value)) o.selected=true;
+    sel.appendChild(o);
+  }
+}
+const selY=$('#selY'), selM=$('#selM'), selD=$('#selD'), selH=$('#selH'), selCity=$('#selCity');
+const NOW_Y=new Date().getFullYear();
+fillSelect(selY, Array.from({length:NOW_Y-1900+1},(_,i)=>({v:NOW_Y-i,t:(NOW_Y-i)+'년'})), NOW_Y);
+fillSelect(selM, Array.from({length:12},(_,i)=>({v:i+1,t:(i+1)+'월'})), 1);
+function refreshDays(){
+  const y=+selY.value, m=+selM.value;
+  const last=new Date(y,m,0).getDate();
+  const cur=Math.min(+selD.value||1,last);
+  fillSelect(selD, Array.from({length:last},(_,i)=>({v:i+1,t:(i+1)+'일'})), cur);
+}
+selY.addEventListener('change',refreshDays);
+selM.addEventListener('change',refreshDays);
+refreshDays();
+for(const s of HOUR_SLOTS){
+  const o=document.createElement('option'); o.value=s.idx; o.textContent=s.label; selH.appendChild(o);
+}
+fillSelect(selCity, CITIES, '서울');
+
+/* ═══════════════ 찾기 → 산출 ═══════════════ */
+$('#btnFind').addEventListener('click',()=>{
+  if(selH.value===''){ openOv('#ovTime'); return; }   // §10-A: 시각 필수
+  const g=document.querySelector('input[name=gender]:checked');
+  if(!g){ toast('성별을 선택해주세요.'); return; }
+  try{
+    const slot=+selH.value;
+    // 시진 → 대표 시각 (hh=2*idx → §3-5 공식으로 해당 시지 복원)
+    const chart=computeChart(+selY.value,+selM.value,+selD.value,slot*2,30);
+    const st=strength(chart.pillars);
+    const cl=climate(chart.pillars);
+    const yg=yongsin(chart.pillars,st,cl);
+    RESULT={U:yg.U, hee:yg.hee, gi:yg.gi, both:yg.both, band:st.band, net:cl.net, need:cl.need, styleIdx:0};
+    renderResult();
+    show('#scr-result');
+  }catch(err){ console.error(err); show('#scr-error'); }   // §10-E 폴백
+});
+
+/* ═══════════════ 결과 렌더 ═══════════════ */
+const fill=(tpl,r)=>tpl
+  .replaceAll('{용신}',WX_NAME[r.U]).replaceAll('{기신}',WX_NAME[r.gi]).replaceAll('{희신}',WX_NAME[r.hee]);
+function renderResult(){
+  const r=RESULT;
+  const lines=[ fill(PHRASES.B[r.band],r), fill(PHRASES.A[r.band],r) ];
+  if(r.need===1) lines.push(PHRASES.C.cold);
+  else if(r.need===4) lines.push(PHRASES.C.hot);
+  lines.push(fill(PHRASES.D[r.U],r));
+  $('#rCopy').innerHTML=lines.join('<br>');
+  $('#rSoft').style.display=(r.band==='mid')?'block':'none';  // §10-D 중화 소프트 안내
+  drawGlyph();
+}
+function glyphNode(wx,styleIdx,px){
+  const st=GLYPH_STYLES[styleIdx], ch=WX_HAN[wx];
+  if(st.pixel){
+    const c=document.createElement('canvas');
+    const N=26, scale=Math.max(1,Math.floor((px||208)/N));
+    c.width=c.height=N;
+    const g=c.getContext('2d');
+    g.fillStyle='#D9B879'; g.font=`900 ${N-3}px 'Noto Serif KR',serif`;
+    g.textAlign='center'; g.textBaseline='middle'; g.fillText(ch,N/2,N/2+1);
+    c.style.width=c.style.height=(N*scale)+'px';
+    c.style.imageRendering='pixelated';
+    return c;
+  }
+  const d=document.createElement('div');
+  d.className='glyph-char';
+  d.style.cssText=st.css;
+  if(px) d.style.fontSize=px+'px';
+  d.textContent=ch;
+  return d;
+}
+function drawGlyph(){
+  const r=RESULT, box=$('#glyphBox');
+  box.innerHTML='';
+  box.appendChild(glyphNode(r.U,r.styleIdx, box.clientHeight?Math.min(box.clientWidth,box.clientHeight)*0.86:null));
+  $('#gStyleNm').textContent=`서체 ${r.styleIdx+1} / ${GLYPH_STYLES.length} — ${GLYPH_STYLES[r.styleIdx].nm}`;
+}
+$('#gPrev').addEventListener('click',()=>{ RESULT.styleIdx=(RESULT.styleIdx+GLYPH_STYLES.length-1)%GLYPH_STYLES.length; drawGlyph(); });
+$('#gNext').addEventListener('click',()=>{ RESULT.styleIdx=(RESULT.styleIdx+1)%GLYPH_STYLES.length; drawGlyph(); });
+
+/* ═══════════════ 다운로드 모달 — 부적 이미지 캔버스 생성 ═══════════════ */
+$('#btnDownload').addEventListener('click',()=>{
+  const grid=$('#amuletGrid'); grid.innerHTML='';
+  GLYPH_STYLES.forEach((st,i)=>{
+    const cell=document.createElement('div'); cell.className='amulet';
+    const gl=glyphNode(RESULT.U,i,58);
+    if(gl.classList) gl.classList.remove('glyph-char');
+    gl.style.fontSize='58px'; gl.style.lineHeight='1.15';
+    gl.style.color='#D9B879'; gl.style.fontWeight='900';
+    const wrap=document.createElement('div'); wrap.className='a-glyph'; wrap.appendChild(gl);
+    const btn=document.createElement('button'); btn.textContent='저장';
+    btn.addEventListener('click',()=>downloadAmulet(i));
+    cell.appendChild(wrap); cell.appendChild(btn);
+    grid.appendChild(cell);
+  });
+  openOv('#ovDown');
+});
+function downloadAmulet(styleIdx){
+  const W=1080,H=1920, r=RESULT;
+  const c=document.createElement('canvas'); c.width=W; c.height=H;
+  const g=c.getContext('2d');
+  g.fillStyle='#170E08'; g.fillRect(0,0,W,H);
+  const grd=g.createRadialGradient(W/2,H*0.42,80, W/2,H*0.42,900);
+  grd.addColorStop(0,'rgba(233,203,141,.10)'); grd.addColorStop(1,'rgba(0,0,0,0)');
+  g.fillStyle=grd; g.fillRect(0,0,W,H);
+  g.strokeStyle='#8A6F45'; g.lineWidth=6; g.strokeRect(46,46,W-92,H-92);
+  g.strokeStyle='rgba(201,167,106,.45)'; g.lineWidth=2; g.strokeRect(70,70,W-140,H-140);
+  g.fillStyle='#C9A76A'; g.textAlign='center';
+  g.font="700 54px 'Gowun Batang','Noto Serif KR',serif";
+  g.fillText('부 적 집',W/2,200);
+  g.fillStyle='#9A8258';
+  g.font="400 34px 'Gowun Batang','Noto Serif KR',serif";
+  g.fillText('당신에게 복을 가져다 주는',W/2,265);
+  const st=GLYPH_STYLES[styleIdx];
+  g.fillStyle='#D9B879';
+  if(st.pixel){
+    const N=26, tmp=document.createElement('canvas'); tmp.width=tmp.height=N;
+    const tg=tmp.getContext('2d');
+    tg.fillStyle='#D9B879'; tg.font=`900 ${N-3}px 'Noto Serif KR',serif`;
+    tg.textAlign='center'; tg.textBaseline='middle'; tg.fillText(WX_HAN[r.U],N/2,N/2+1);
+    g.imageSmoothingEnabled=false;
+    g.drawImage(tmp,W/2-390,H*0.42-390,780,780);
+  } else {
+    g.save(); g.translate(W/2,H*0.42+240);
+    if(st.nm==='흘림체'){ g.rotate(-0.1); g.transform(1,0,-0.07,1,0,0); }
+    const fam=st.nm==='해서체'?"'Noto Serif KR','Noto Serif TC',serif":"'Gowun Batang',serif";
+    const wgt=st.nm==='흘림체'?400:900;
+    g.font=`${st.nm==='흘림체'?'italic ':''}${wgt} 680px ${fam}`;
+    g.fillText(WX_HAN[r.U],0,0); g.restore();
+  }
+  g.fillStyle='#E7C887';
+  g.font="700 72px 'Gowun Batang','Noto Serif KR',serif";
+  g.fillText(`${WX_KO[r.U]}(${WX_HAN[r.U]}) 용신부적`,W/2,H-420);
+  g.fillStyle='#B99C6B';
+  g.font="400 36px 'Gowun Batang','Noto Serif KR',serif";
+  g.fillText('나를 채워주는 기운을 늘 곁에',W/2,H-340);
+  g.fillStyle='#6E5836';
+  g.font="400 28px 'Gowun Batang','Noto Serif KR',serif";
+  g.fillText('BUJEOKJIP',W/2,H-160);
+  const a=document.createElement('a');
+  a.download=`부적집_${WX_KO[RESULT.U]}용신부적_${GLYPH_STYLES[styleIdx].nm}.png`;
+  a.href=c.toDataURL('image/png');
+  a.click();
+}
+$('#btnBuy').addEventListener('click',()=>openOv('#ovBuy'));
+
+/* §10-E: 전역 오류 폴백 */
+window.addEventListener('error',()=>{ try{ show('#scr-error'); }catch(_){} });
+</script>
+</body>
+</html>
