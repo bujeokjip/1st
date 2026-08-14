@@ -1,0 +1,1968 @@
+{
+  "rows": [
+    {
+      "no": 1,
+      "date": "1979-02-02",
+      "time": "16:45",
+      "gender": "여",
+      "note": "§9 회귀",
+      "palja": {
+        "ours": "무오 을축 경자 갑신",
+        "api": "무오 을축 경자 갑신",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 1,
+        "api": "중화",
+        "apiScore": 48,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "토",
+        "apiJohu": "화",
+        "apiEokbu": "토",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "정책 차이 (조후 우선 vs 억부 우선)"
+      },
+      "boundary": {
+        "A": {
+          "palja": "무오 을축 경자 갑신",
+          "match": true
+        },
+        "B": {
+          "palja": "무오 을축 경자 갑신",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 2,
+      "date": "1978-09-16",
+      "time": "12:20",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "무오 신유 신사 갑오",
+        "api": "무오 신유 신사 갑오",
+        "match": true
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 4,
+        "api": "중화",
+        "apiScore": 53,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "수",
+        "apiJohu": "토",
+        "apiEokbu": "수",
+        "apiMethod": "eokbu",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "무오 신유 신사 갑오",
+          "match": true
+        },
+        "B": {
+          "palja": "무오 신유 신사 갑오",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 3,
+      "date": "1940-09-11",
+      "time": "09:54",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "경진 을유 정사 갑진",
+        "api": "경진 을유 정사 을사",
+        "match": false
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 1,
+        "api": "신강",
+        "apiScore": 62,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "토",
+        "apiJohu": "목",
+        "apiEokbu": "토",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "경진 을유 정사 갑진",
+          "match": false
+        },
+        "B": {
+          "palja": "경진 을유 정사 을사",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 4,
+      "date": "1970-11-16",
+      "time": "06:26",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "경술 정해 경자 기묘",
+        "api": "경술 정해 경자 기묘",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -1,
+        "api": "중화",
+        "apiScore": 39,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "토",
+        "apiJohu": "화",
+        "apiEokbu": "토",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "정책 차이 (조후 우선 vs 억부 우선)"
+      },
+      "boundary": {
+        "A": {
+          "palja": "경술 정해 경자 기묘",
+          "match": true
+        },
+        "B": {
+          "palja": "경술 정해 경자 기묘",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 5,
+      "date": "1969-08-03",
+      "time": "02:53",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "기유 신미 경술 정축",
+        "api": "기유 신미 경술 정축",
+        "match": true
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 5.5,
+        "api": "신강",
+        "apiScore": 83,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "수",
+        "apiJohu": "수",
+        "apiEokbu": "수",
+        "apiMethod": "combined",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "기유 신미 경술 정축",
+          "match": true
+        },
+        "B": {
+          "palja": "기유 신미 경술 정축",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 6,
+      "date": "1974-07-01",
+      "time": "16:00",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "갑인 경오 계묘 기미",
+        "api": "갑인 경오 계묘 경신",
+        "match": false
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -4,
+        "api": "중화",
+        "apiScore": 46,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "금",
+        "apiJohu": "금",
+        "apiEokbu": "금",
+        "apiMethod": "combined",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "갑인 경오 계묘 기미",
+          "match": false
+        },
+        "B": {
+          "palja": "갑인 경오 계묘 경신",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 7,
+      "date": "1994-11-01",
+      "time": "15:32",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "갑술 갑술 신묘 을미",
+        "api": "갑술 갑술 신묘 병신",
+        "match": false
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -1,
+        "api": "중화",
+        "apiScore": 46,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "토",
+        "api": "토",
+        "apiJohu": "토",
+        "apiEokbu": "토",
+        "apiMethod": "combined",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "갑술 갑술 신묘 을미",
+          "match": false
+        },
+        "B": {
+          "palja": "갑술 갑술 신묘 병신",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 8,
+      "date": "1943-10-05",
+      "time": "06:22",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "계미 신유 병신 신묘",
+        "api": "계미 신유 병신 신묘",
+        "match": true
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -4,
+        "api": "신약",
+        "apiScore": 21,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "목",
+        "api": "목",
+        "apiJohu": "목",
+        "apiEokbu": "목",
+        "apiMethod": "combined",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "계미 신유 병신 신묘",
+          "match": true
+        },
+        "B": {
+          "palja": "계미 신유 병신 신묘",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 9,
+      "date": "1988-05-28",
+      "time": "00:48",
+      "gender": "여",
+      "note": "서머타임 기간",
+      "palja": {
+        "ours": "무진 정사 임오 신해",
+        "api": "무진 정사 계미 임자",
+        "match": false
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -3,
+        "api": "신약",
+        "apiScore": 29,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "금",
+        "apiJohu": "금",
+        "apiEokbu": "금",
+        "apiMethod": "combined",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "무진 정사 임오 신해",
+          "match": false
+        },
+        "B": {
+          "palja": "무진 정사 계미 임자",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 10,
+      "date": "1983-06-10",
+      "time": "17:18",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "계해 무오 기사 임신",
+        "api": "계해 무오 기사 임신",
+        "match": true
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 3.5,
+        "api": "신강",
+        "apiScore": 64,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "목",
+        "api": "금",
+        "apiJohu": "수",
+        "apiEokbu": "금",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "계해 무오 기사 임신",
+          "match": true
+        },
+        "B": {
+          "palja": "계해 무오 기사 임신",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 11,
+      "date": "1983-10-06",
+      "time": "10:44",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "계해 신유 정묘 을사",
+        "api": "계해 신유 정묘 을사",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -0.5,
+        "api": "중화",
+        "apiScore": 46,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "토",
+        "api": "목",
+        "apiJohu": "목",
+        "apiEokbu": "목",
+        "apiMethod": "combined",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "계해 신유 정묘 을사",
+          "match": true
+        },
+        "B": {
+          "palja": "계해 신유 정묘 을사",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 12,
+      "date": "1932-07-23",
+      "time": "09:38",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "임신 정미 을유 경진",
+        "api": "임신 정미 을유 신사",
+        "match": false
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -2.5,
+        "api": "신약",
+        "apiScore": 20,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "수",
+        "apiJohu": "수",
+        "apiEokbu": "수",
+        "apiMethod": "combined",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "임신 정미 을유 경진",
+          "match": false
+        },
+        "B": {
+          "palja": "임신 정미 을유 신사",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 13,
+      "date": "1938-09-24",
+      "time": "01:36",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "무인 신유 기미 갑자",
+        "api": "무인 신유 기미 을축",
+        "match": false
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 1.5,
+        "api": "중화",
+        "apiScore": 47,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "목",
+        "api": "화",
+        "apiJohu": "화",
+        "apiEokbu": "화",
+        "apiMethod": "combined",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "무인 신유 기미 갑자",
+          "match": false
+        },
+        "B": {
+          "palja": "무인 신유 기미 을축",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 14,
+      "date": "1982-01-25",
+      "time": "11:22",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "신유 신축 무신 정사",
+        "api": "신유 신축 무신 정사",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 1,
+        "api": "중화",
+        "apiScore": 55,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "목",
+        "api": "금",
+        "apiJohu": "화",
+        "apiEokbu": "금",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "신유 신축 무신 정사",
+          "match": true
+        },
+        "B": {
+          "palja": "신유 신축 무신 정사",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 15,
+      "date": "1999-09-03",
+      "time": "09:23",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "기묘 임신 무오 병진",
+        "api": "기묘 임신 무오 병진",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 1.5,
+        "api": "신강",
+        "apiScore": 55,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "목",
+        "api": "금",
+        "apiJohu": "화",
+        "apiEokbu": "금",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "기묘 임신 무오 병진",
+          "match": true
+        },
+        "B": {
+          "palja": "기묘 임신 무오 병진",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 16,
+      "date": "1941-03-02",
+      "time": "09:52",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "신사 경인 기유 무진",
+        "api": "신사 경인 기유 기사",
+        "match": false
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -4.5,
+        "api": "중화",
+        "apiScore": 39,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "화",
+        "apiJohu": "화",
+        "apiEokbu": "화",
+        "apiMethod": "combined",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "신사 경인 기유 무진",
+          "match": false
+        },
+        "B": {
+          "palja": "신사 경인 기유 기사",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 17,
+      "date": "1987-02-26",
+      "time": "00:36",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "정묘 임인 병오 무자",
+        "api": "정묘 임인 병오 무자",
+        "match": true
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 4.5,
+        "api": "신강",
+        "apiScore": 64,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "토",
+        "apiJohu": "목",
+        "apiEokbu": "토",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "정묘 임인 병오 무자",
+          "match": true
+        },
+        "B": {
+          "palja": "정묘 임인 병오 무자",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 18,
+      "date": "1992-04-26",
+      "time": "12:29",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "임신 갑진 임신 병오",
+        "api": "임신 갑진 임신 병오",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -1,
+        "api": "중화",
+        "apiScore": 43,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "금",
+        "api": "금",
+        "apiJohu": "금",
+        "apiEokbu": "금",
+        "apiMethod": "combined",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "임신 갑진 임신 병오",
+          "match": true
+        },
+        "B": {
+          "palja": "임신 갑진 임신 병오",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 19,
+      "date": "1958-12-26",
+      "time": "03:09",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "무술 갑자 정축 신축",
+        "api": "무술 갑자 정축 신축",
+        "match": true
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -4,
+        "api": "신약",
+        "apiScore": 28,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "목",
+        "apiJohu": "목",
+        "apiEokbu": "목",
+        "apiMethod": "combined",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "무술 갑자 정축 신축",
+          "match": true
+        },
+        "B": {
+          "palja": "무술 갑자 정축 임인",
+          "match": false
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 20,
+      "date": "1987-11-06",
+      "time": "06:48",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "정묘 경술 기미 정묘",
+        "api": "정묘 경술 기미 정묘",
+        "match": true
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 6,
+        "api": "신강",
+        "apiScore": 69,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "목",
+        "api": "금",
+        "apiJohu": "화",
+        "apiEokbu": "금",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "정묘 경술 기미 정묘",
+          "match": true
+        },
+        "B": {
+          "palja": "정묘 경술 기미 정묘",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 21,
+      "date": "1970-10-29",
+      "time": "23:42",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "경술 병술 임오 신해",
+        "api": "경술 병술 계미 임자",
+        "match": false
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -3,
+        "api": "중화",
+        "apiScore": 35,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "금",
+        "api": "금",
+        "apiJohu": "화",
+        "apiEokbu": "금",
+        "apiMethod": "eokbu",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "경술 병술 임오 신해",
+          "match": false
+        },
+        "B": {
+          "palja": "경술 병술 계미 임자",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 22,
+      "date": "1995-09-28",
+      "time": "06:48",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "을해 을유 임술 계묘",
+        "api": "을해 을유 임술 계묘",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 0.5,
+        "api": "중화",
+        "apiScore": 52,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "목",
+        "apiJohu": "토",
+        "apiEokbu": "목",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "을해 을유 임술 계묘",
+          "match": true
+        },
+        "B": {
+          "palja": "을해 을유 임술 계묘",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 23,
+      "date": "1996-07-20",
+      "time": "20:00",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "병자 을미 무오 신유",
+        "api": "병자 을미 무오 임술",
+        "match": false
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 4.5,
+        "api": "신강",
+        "apiScore": 64,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "금",
+        "apiJohu": "수",
+        "apiEokbu": "금",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "정책 차이 (조후 우선 vs 억부 우선)"
+      },
+      "boundary": {
+        "A": {
+          "palja": "병자 을미 무오 신유",
+          "match": false
+        },
+        "B": {
+          "palja": "병자 을미 무오 임술",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 24,
+      "date": "1959-10-19",
+      "time": "12:00",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "기해 갑술 갑술 경오",
+        "api": "기해 갑술 갑술 경오",
+        "match": true
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -3.5,
+        "api": "신약",
+        "apiScore": 34,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "수",
+        "apiJohu": "화",
+        "apiEokbu": "수",
+        "apiMethod": "eokbu",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "기해 갑술 갑술 경오",
+          "match": true
+        },
+        "B": {
+          "palja": "기해 갑술 갑술 경오",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 25,
+      "date": "1971-03-02",
+      "time": "03:00",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "신해 경인 병술 기축",
+        "api": "신해 경인 병술 기축",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 0,
+        "api": "중화",
+        "apiScore": 36,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "목",
+        "api": "목",
+        "apiJohu": "목",
+        "apiEokbu": "목",
+        "apiMethod": "combined",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "신해 경인 병술 기축",
+          "match": true
+        },
+        "B": {
+          "palja": "신해 경인 병술 기축",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 26,
+      "date": "2007-03-01",
+      "time": "03:22",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "정해 임인 갑오 을축",
+        "api": "정해 임인 갑오 을축",
+        "match": true
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 3,
+        "api": "신강",
+        "apiScore": 67,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "금",
+        "api": "화",
+        "apiJohu": "화",
+        "apiEokbu": "화",
+        "apiMethod": "combined",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "정해 임인 갑오 을축",
+          "match": true
+        },
+        "B": {
+          "palja": "정해 임인 갑오 을축",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 27,
+      "date": "1998-02-17",
+      "time": "13:10",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "무인 갑인 을미 임오",
+        "api": "무인 갑인 을미 임오",
+        "match": true
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 3,
+        "api": "신강",
+        "apiScore": 66,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "금",
+        "api": "화",
+        "apiJohu": "화",
+        "apiEokbu": "화",
+        "apiMethod": "combined",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "무인 갑인 을미 임오",
+          "match": true
+        },
+        "B": {
+          "palja": "무인 갑인 을미 임오",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 28,
+      "date": "2005-09-26",
+      "time": "16:01",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "을유 을유 계축 기미",
+        "api": "을유 을유 계축 경신",
+        "match": false
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 0,
+        "api": "신강",
+        "apiScore": 57,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "목",
+        "apiJohu": "토",
+        "apiEokbu": "목",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "을유 을유 계축 기미",
+          "match": false
+        },
+        "B": {
+          "palja": "을유 을유 계축 경신",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 29,
+      "date": "1963-04-02",
+      "time": "00:00",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "계묘 을묘 갑술 을해",
+        "api": "계묘 을묘 을해 병자",
+        "match": false
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 5.5,
+        "api": "신강",
+        "apiScore": 86,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "금",
+        "api": "화",
+        "apiJohu": "화",
+        "apiEokbu": "화",
+        "apiMethod": "combined",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "계묘 을묘 갑술 을해",
+          "match": false
+        },
+        "B": {
+          "palja": "계묘 을묘 을해 병자",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 30,
+      "date": "1988-04-04",
+      "time": "02:37",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "무진 을묘 기축 을축",
+        "api": "무진 을묘 기축 을축",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -1,
+        "api": "신강",
+        "apiScore": 49,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "금",
+        "apiJohu": "화",
+        "apiEokbu": "금",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "정책 차이 (조후 우선 vs 억부 우선)"
+      },
+      "boundary": {
+        "A": {
+          "palja": "무진 을묘 기축 을축",
+          "match": true
+        },
+        "B": {
+          "palja": "무진 을묘 기축 을축",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 31,
+      "date": "1935-04-16",
+      "time": "23:36",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "을해 경진 임술 신해",
+        "api": "을해 경진 계해 임자",
+        "match": false
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -2.5,
+        "api": "신강",
+        "apiScore": 68,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "목",
+        "apiJohu": "금",
+        "apiEokbu": "목",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "을해 경진 임술 신해",
+          "match": false
+        },
+        "B": {
+          "palja": "을해 경진 계해 임자",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 32,
+      "date": "1941-06-16",
+      "time": "06:47",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "신사 갑오 을미 기묘",
+        "api": "신사 갑오 을미 기묘",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -1.5,
+        "api": "신약",
+        "apiScore": 37,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "수",
+        "apiJohu": "수",
+        "apiEokbu": "수",
+        "apiMethod": "combined",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "신사 갑오 을미 기묘",
+          "match": true
+        },
+        "B": {
+          "palja": "신사 갑오 을미 기묘",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 33,
+      "date": "1968-04-04",
+      "time": "23:27",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "무신 을묘 갑진 을해",
+        "api": "무신 을묘 갑진 을해",
+        "match": true
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 4.5,
+        "api": "신강",
+        "apiScore": 66,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "금",
+        "api": "화",
+        "apiJohu": "화",
+        "apiEokbu": "화",
+        "apiMethod": "combined",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "무신 을묘 갑진 을해",
+          "match": true
+        },
+        "B": {
+          "palja": "무신 을묘 갑진 을해",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 34,
+      "date": "1932-09-30",
+      "time": "07:57",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "임신 기유 갑오 정묘",
+        "api": "임신 기유 갑오 무진",
+        "match": false
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -4,
+        "api": "신약",
+        "apiScore": 20,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "수",
+        "apiJohu": "화",
+        "apiEokbu": "수",
+        "apiMethod": "eokbu",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "임신 기유 갑오 정묘",
+          "match": false
+        },
+        "B": {
+          "palja": "임신 기유 갑오 무진",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 35,
+      "date": "1996-04-06",
+      "time": "09:55",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "병자 임진 계유 병진",
+        "api": "병자 임진 계유 정사",
+        "match": false
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -1,
+        "api": "중화",
+        "apiScore": 50,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "금",
+        "api": "목",
+        "apiJohu": "금",
+        "apiEokbu": "목",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "정책 차이 (조후 우선 vs 억부 우선)"
+      },
+      "boundary": {
+        "A": {
+          "palja": "병자 임진 계유 병진",
+          "match": false
+        },
+        "B": {
+          "palja": "병자 임진 계유 정사",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 36,
+      "date": "1983-02-28",
+      "time": "03:47",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "계해 갑인 정해 신축",
+        "api": "계해 갑인 정해 임인",
+        "match": false
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 1,
+        "api": "중화",
+        "apiScore": 50,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "토",
+        "apiJohu": "목",
+        "apiEokbu": "토",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "계해 갑인 정해 신축",
+          "match": false
+        },
+        "B": {
+          "palja": "계해 갑인 정해 임인",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 37,
+      "date": "1952-06-10",
+      "time": "10:59",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "임진 병오 정해 을사",
+        "api": "임진 병오 정해 을사",
+        "match": true
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 3.5,
+        "api": "신강",
+        "apiScore": 65,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "토",
+        "apiJohu": "수",
+        "apiEokbu": "토",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "정책 차이 (조후 우선 vs 억부 우선)"
+      },
+      "boundary": {
+        "A": {
+          "palja": "임진 병오 정해 을사",
+          "match": true
+        },
+        "B": {
+          "palja": "임진 병오 정해 을사",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 38,
+      "date": "1951-12-20",
+      "time": "23:58",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "신묘 경자 갑오 을해",
+        "api": "신묘 경자 을미 병자",
+        "match": false
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 1.5,
+        "api": "중화",
+        "apiScore": 46,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "수",
+        "apiJohu": "화",
+        "apiEokbu": "수",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "정책 차이 (조후 우선 vs 억부 우선)"
+      },
+      "boundary": {
+        "A": {
+          "palja": "신묘 경자 갑오 을해",
+          "match": false
+        },
+        "B": {
+          "palja": "신묘 경자 을미 병자",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 39,
+      "date": "2000-04-10",
+      "time": "16:20",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "경진 경진 무술 경신",
+        "api": "경진 경진 무술 경신",
+        "match": true
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 3,
+        "api": "신강",
+        "apiScore": 62,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "목",
+        "api": "금",
+        "apiJohu": "수",
+        "apiEokbu": "금",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "경진 경진 무술 경신",
+          "match": true
+        },
+        "B": {
+          "palja": "경진 경진 무술 경신",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 40,
+      "date": "1939-04-28",
+      "time": "02:54",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "기묘 무진 을미 정축",
+        "api": "기묘 무진 을미 정축",
+        "match": true
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -4,
+        "api": "신약",
+        "apiScore": 22,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "수",
+        "apiJohu": "화",
+        "apiEokbu": "수",
+        "apiMethod": "eokbu",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "기묘 무진 을미 정축",
+          "match": true
+        },
+        "B": {
+          "palja": "기묘 무진 을미 정축",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 41,
+      "date": "1949-10-09",
+      "time": "09:22",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "기축 갑술 임신 갑진",
+        "api": "기축 갑술 임신 갑진",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -2.5,
+        "api": "중화",
+        "apiScore": 29,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "금",
+        "api": "금",
+        "apiJohu": "화",
+        "apiEokbu": "금",
+        "apiMethod": "eokbu",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "기축 갑술 임신 갑진",
+          "match": true
+        },
+        "B": {
+          "palja": "기축 갑술 임신 갑진",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 42,
+      "date": "1956-05-30",
+      "time": "01:40",
+      "gender": "남",
+      "note": "서머타임 기간",
+      "palja": {
+        "ours": "병신 계사 정유 경자",
+        "api": "병신 계사 정유 신축",
+        "match": false
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 1,
+        "api": "중화",
+        "apiScore": 42,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "수",
+        "api": "목",
+        "apiJohu": "수",
+        "apiEokbu": "목",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "정책 차이 (조후 우선 vs 억부 우선)"
+      },
+      "boundary": {
+        "A": {
+          "palja": "병신 계사 정유 경자",
+          "match": false
+        },
+        "B": {
+          "palja": "병신 계사 정유 경자",
+          "match": false
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 43,
+      "date": "1993-11-06",
+      "time": "10:25",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "계유 임술 신묘 계사",
+        "api": "계유 임술 신묘 계사",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 0,
+        "api": "중화",
+        "apiScore": 42,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "토",
+        "apiJohu": "토",
+        "apiEokbu": "토",
+        "apiMethod": "combined",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "계유 임술 신묘 계사",
+          "match": true
+        },
+        "B": {
+          "palja": "계유 임술 신묘 계사",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 44,
+      "date": "1989-11-27",
+      "time": "12:08",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "기사 을해 신묘 갑오",
+        "api": "기사 을해 신묘 갑오",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -2.5,
+        "api": "신약",
+        "apiScore": 21,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "토",
+        "api": "토",
+        "apiJohu": "화",
+        "apiEokbu": "토",
+        "apiMethod": "eokbu",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "기사 을해 신묘 갑오",
+          "match": true
+        },
+        "B": {
+          "palja": "기사 을해 신묘 갑오",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 45,
+      "date": "2005-04-28",
+      "time": "21:04",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "을유 경진 임오 경술",
+        "api": "을유 경진 임오 경술",
+        "match": true
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -3,
+        "api": "중화",
+        "apiScore": 42,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "금",
+        "api": "금",
+        "apiJohu": "금",
+        "apiEokbu": "금",
+        "apiMethod": "combined",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "을유 경진 임오 경술",
+          "match": true
+        },
+        "B": {
+          "palja": "을유 경진 임오 경술",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 46,
+      "date": "1983-12-01",
+      "time": "11:37",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "계해 계해 계해 정사",
+        "api": "계해 계해 계해 무오",
+        "match": false
+      },
+      "strength": {
+        "ours": "신강",
+        "oursScore": 6.5,
+        "api": "신강",
+        "apiScore": 80,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "목",
+        "apiJohu": "화",
+        "apiEokbu": "목",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "정책 차이 (조후 우선 vs 억부 우선)"
+      },
+      "boundary": {
+        "A": {
+          "palja": "계해 계해 계해 정사",
+          "match": false
+        },
+        "B": {
+          "palja": "계해 계해 계해 무오",
+          "match": true
+        },
+        "differs": true
+      }
+    },
+    {
+      "no": 47,
+      "date": "1984-05-08",
+      "time": "01:01",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "갑자 기사 임인 경자",
+        "api": "갑자 기사 임인 경자",
+        "match": true
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -3,
+        "api": "중화",
+        "apiScore": 39,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "금",
+        "api": "금",
+        "apiJohu": "금",
+        "apiEokbu": "금",
+        "apiMethod": "combined",
+        "match": true,
+        "cause": "일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "갑자 기사 임인 경자",
+          "match": true
+        },
+        "B": {
+          "palja": "갑자 기사 임인 경자",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 48,
+      "date": "1996-11-18",
+      "time": "13:30",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "병자 기해 기미 경오",
+        "api": "병자 기해 기미 경오",
+        "match": true
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": 1,
+        "api": "신강",
+        "apiScore": 59,
+        "match": false
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "금",
+        "apiJohu": "화",
+        "apiEokbu": "금",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "정책 차이 (조후 우선 vs 억부 우선)"
+      },
+      "boundary": {
+        "A": {
+          "palja": "병자 기해 기미 경오",
+          "match": true
+        },
+        "B": {
+          "palja": "병자 기해 기미 경오",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 49,
+      "date": "1957-11-21",
+      "time": "22:43",
+      "gender": "남",
+      "note": "",
+      "palja": {
+        "ours": "정유 신해 정유 신해",
+        "api": "정유 신해 정유 신해",
+        "match": true
+      },
+      "strength": {
+        "ours": "신약",
+        "oursScore": -4,
+        "api": "신약",
+        "apiScore": 19,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "목",
+        "apiJohu": "목",
+        "apiEokbu": "목",
+        "apiMethod": "combined",
+        "match": false,
+        "cause": "기타 불일치"
+      },
+      "boundary": {
+        "A": {
+          "palja": "정유 신해 정유 신해",
+          "match": true
+        },
+        "B": {
+          "palja": "정유 신해 정유 신해",
+          "match": true
+        },
+        "differs": false
+      }
+    },
+    {
+      "no": 50,
+      "date": "1991-09-15",
+      "time": "11:49",
+      "gender": "여",
+      "note": "",
+      "palja": {
+        "ours": "신미 정유 무자 정사",
+        "api": "신미 정유 무자 무오",
+        "match": false
+      },
+      "strength": {
+        "ours": "중화",
+        "oursScore": -1,
+        "api": "중화",
+        "apiScore": 53,
+        "match": true
+      },
+      "yongsin": {
+        "ours": "화",
+        "api": "금",
+        "apiJohu": "화",
+        "apiEokbu": "금",
+        "apiMethod": "eokbu",
+        "match": false,
+        "cause": "정책 차이 (조후 우선 vs 억부 우선)"
+      },
+      "boundary": {
+        "A": {
+          "palja": "신미 정유 무자 정사",
+          "match": false
+        },
+        "B": {
+          "palja": "신미 정유 무자 무오",
+          "match": true
+        },
+        "differs": true
+      }
+    }
+  ],
+  "total": 50,
+  "matched": {
+    "palja": 31,
+    "strength": 35,
+    "yongsin": 17
+  },
+  "boundary": {
+    "A": 31,
+    "B": 48
+  },
+  "yongsinCause": {
+    "policy": 11,
+    "other": 22
+  }
+}

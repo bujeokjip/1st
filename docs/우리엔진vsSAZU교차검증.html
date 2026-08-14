@@ -1,0 +1,716 @@
+<title>용신 교차 검증 — 우리 엔진 × SAZU API</title>
+<style>
+  :root{
+    --paper:#EAE5D8; --surface:#F2EDE0; --ink:#1D1813; --ink-soft:#5C5347;
+    --line:#CBC1AA; --line-soft:#DAD2BE; --gold:#8A6F45; --ju:#A8352B; --ok:#2E6E4E;
+    --ok-bg:rgba(46,110,78,.1); --no-bg:rgba(168,53,43,.1); --pol-bg:rgba(138,111,69,.14);
+  }
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+    --paper:#241710; --surface:#2B1C12; --ink:#EFDCAE; --ink-soft:#C9A76A;
+    --line:#4A3823; --line-soft:#3A2B19; --gold:#C9A76A; --ju:#E08070; --ok:#8FBF9F;
+    --ok-bg:rgba(143,191,159,.12); --no-bg:rgba(224,128,112,.12); --pol-bg:rgba(201,167,106,.16);}}
+  :root[data-theme="dark"]{
+    --paper:#241710; --surface:#2B1C12; --ink:#EFDCAE; --ink-soft:#C9A76A;
+    --line:#4A3823; --line-soft:#3A2B19; --gold:#C9A76A; --ju:#E08070; --ok:#8FBF9F;
+    --ok-bg:rgba(143,191,159,.12); --no-bg:rgba(224,128,112,.12); --pol-bg:rgba(201,167,106,.16);}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','Segoe UI',sans-serif;
+    line-height:1.65; font-size:15px;}
+  .wrap{max-width:1000px; margin:0 auto; padding:clamp(28px,6vw,60px) clamp(14px,4vw,30px) 70px;}
+  .eyebrow{font-size:12px; letter-spacing:.32em; text-transform:uppercase; color:var(--gold); font-weight:700; margin:0 0 14px;}
+  h1{font-family:'Nanum Myeongjo','AppleMyungjo','Batang',Georgia,serif;
+     font-size:clamp(25px,5vw,36px); line-height:1.25; margin:0 0 10px; font-weight:700; text-wrap:balance;}
+  h1 .ju{color:var(--ju);}
+  .meta{color:var(--ink-soft); font-size:13.5px; margin:0 0 32px;}
+  .meta b{color:var(--ink); font-weight:600;}
+  h2{font-size:17px; margin:34px 0 12px; font-weight:700;}
+  p{margin:0 0 12px;} .sub{color:var(--ink-soft); font-size:14px;}
+
+  .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:0 0 8px;}
+  .tile{background:var(--surface); border:1px solid var(--line); border-radius:4px; padding:14px 16px 12px;}
+  .tile .k{font-size:11px; letter-spacing:.14em; color:var(--gold); font-weight:700;}
+  .tile .v{font-family:'Nanum Myeongjo','AppleMyungjo','Batang',Georgia,serif;
+           font-size:27px; font-weight:700; line-height:1.2; font-variant-numeric:tabular-nums; margin-top:2px;}
+  .tile .v.ok{color:var(--ok);} .tile .v.ju{color:var(--ju);}
+  .tile .n{font-size:11.5px; color:var(--ink-soft);}
+
+  .find{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--ju);
+        border-radius:4px; padding:18px 20px; margin:0 0 16px;}
+  .find h3{margin:0 0 8px; font-size:15px; font-weight:700;}
+  .find p{margin:0 0 8px; font-size:14px; color:var(--ink-soft);}
+  .find p:last-child{margin:0;} .find b{color:var(--ink);}
+  code{font-family:ui-monospace,'SF Mono','D2Coding',Consolas,monospace; font-size:12.5px;
+       background:var(--paper); border:1px solid var(--line-soft); border-radius:3px; padding:1px 5px;}
+
+  .table-scroll{overflow-x:auto; border:1px solid var(--line); border-radius:4px; background:var(--surface);}
+  table{border-collapse:collapse; width:100%; min-width:860px; font-size:13px;}
+  thead th{position:sticky; top:0; background:var(--surface); color:var(--gold);
+           font-size:10.5px; letter-spacing:.12em; text-align:left;
+           padding:10px 10px; border-bottom:1px solid var(--line); white-space:nowrap;}
+  td{padding:8px 10px; border-bottom:1px solid var(--line-soft); white-space:nowrap;}
+  tbody tr:last-child td{border-bottom:0;}
+  .num{font-variant-numeric:tabular-nums; color:var(--ink-soft);}
+  .num .g{margin-left:6px; font-size:11px; color:var(--gold);}
+  .gz{font-family:'Nanum Myeongjo','AppleMyungjo','Batang',Georgia,serif; font-size:14px;}
+  .wx .s{margin-left:5px; font-size:11px; color:var(--ink-soft); font-variant-numeric:tabular-nums;}
+  .pill{display:inline-block; font-size:11.5px; font-weight:700; border-radius:999px; padding:2px 10px;}
+  .pill.ok{color:var(--ok); background:var(--ok-bg);} .pill.no{color:var(--ju); background:var(--no-bg);}
+  .cause{font-size:11.5px;}
+  .c-ok{color:var(--ok);} .c-pol{color:var(--gold); background:var(--pol-bg);} .c-etc{color:var(--ju);}
+  footer{margin-top:28px; padding-top:14px; border-top:1px solid var(--line);
+         color:var(--ink-soft); font-size:12.5px; line-height:1.8;}
+</style>
+<div class="wrap">
+  <p class="eyebrow">부적집 · 용신 엔진 검증 리포트</p>
+  <h1>용신·신강약 교차 검증<br>우리 엔진 × <span class="ju">SAZU 만세력 API</span></h1>
+  <p class="meta">수행일 <b>2026-08-14</b> · 표본 <b>50건</b>(1930~2010 무작위, 고정 시드) · 비교 기준 <b>trueSolarTime=false</b>(한국 관습) · 서울</p>
+
+  <div class="tiles">
+    <div class="tile"><div class="k">사주팔자</div><div class="v ok">48<span style="font-size:15px">/50</span></div><div class="n">경계 23:00 기준</div></div>
+    <div class="tile"><div class="k">신강약</div><div class="v">35<span style="font-size:15px">/48</span></div><div class="n">팔자 일치 행 한정</div></div>
+    <div class="tile"><div class="k">용신</div><div class="v ju">17<span style="font-size:15px">/48</span></div><div class="n">팔자 일치 행 한정</div></div>
+    <div class="tile"><div class="k">용신 불일치 사유</div><div class="v" style="font-size:19px">정책 10 · 기타 21</div><div class="n">조후 우선 vs 억부 우선</div></div>
+  </div>
+
+  <h2>발견 1 — 시각 경계가 30분 어긋나 있었다</h2>
+  <div class="find">
+    <h3>현행 설정(자시 23:30)으로는 사주팔자가 31/50만 일치</h3>
+    <p>같은 표본을 <b>자시 경계 23:00</b>으로 바꿔 계산하면 <b>48/50</b>로 올라간다.</p>
+    <p>원인은 <b>보정 이중 적용</b>이다. 우리는 경도 보정 <code>−32분</code>을 적용한 위에 경계를 다시
+      <code>+30분</code> 옮겨서, 자시가 KST <b>00:02</b>에 시작한다.
+      SAZU의 한국 관습 모드는 경도 보정을 <code>−2분</code>만 적용하고 경계를 23:30에 두어 자시가 KST <b>23:32</b>에 시작한다.
+      "자시 23:30"이라는 관습 자체가 경도 보정을 대신하는 근사치이므로, 둘을 함께 적용하면 30분이 밀린다.</p>
+    <p>고치는 법: <code>engine/src/manse.js</code>의 <code>ZI_BOUNDARY</code>를 <code>23*60</code>으로.
+      그러면 자시 시작이 KST 23:32가 되어 관습·진태양시 양쪽과 2분 이내로 맞는다.</p>
+  </div>
+
+  <h2>발견 2 — 용신 판정 정책이 서로 반대다</h2>
+  <div class="find">
+    <h3>억부와 조후가 다른 오행을 가리킬 때</h3>
+    <p>우리 명세서 <b>§6-2는 조후 우선</b>("극한 한열은 생존 문제")이고,
+      SAZU는 <b>억부 우선</b>이다. API 응답의 <code>reasoning</code>에 그대로 적혀 있다 —
+      <i>"조후용신(화)과 불일치 → 억부 우선 채택"</i>.</p>
+    <p>팔자가 일치하는 48건 중 용신 불일치 31건을 뜯어보면
+      <b>10건이 이 정책 차이</b>로 설명되고, 나머지 <b>21건</b>은 배점·임계값 차이 등 별도 원인이다.</p>
+    <p>어느 쪽이 옳다기보다 <b>유파 선택의 문제</b>다. 다만 우리 결과가 시중 서비스와 다르게 나오는 이유가
+      여기 있으므로, 기획이 §6-2를 유지할지 결정할 근거가 된다.</p>
+  </div>
+
+  <h2>전체 비교표</h2>
+  <p class="sub">우리 값은 <b>경계 23:00</b> 설정 기준(발견 1 반영). 신강약 옆 작은 숫자는 점수(우리 −N~+N, SAZU 0~100).</p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr>
+        <th>#</th><th>생년월일시</th><th>사주팔자 (우리)</th><th>사주팔자 (SAZU)</th><th>팔자</th>
+        <th>신강 (우리)</th><th>신강 (SAZU)</th><th>용신 (우리)</th><th>용신 (SAZU)</th><th>용신 판정</th>
+      </tr></thead>
+      <tbody>
+      <tr>
+        <td class="num">1</td>
+        <td class="num">1979-02-02 16:45<span class="g">여</span></td>
+        <td class="gz">무오 을축 경자 갑신</td>
+        <td class="gz">무오 을축 경자 갑신</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">+1</span></td>
+        <td class="wx">중화<span class="s">48</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>토</b></td>
+        <td class="cause c-pol">정책 차이</td>
+      </tr>
+      <tr>
+        <td class="num">2</td>
+        <td class="num">1978-09-16 12:20<span class="g">여</span></td>
+        <td class="gz">무오 신유 신사 갑오</td>
+        <td class="gz">무오 신유 신사 갑오</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+4</span></td>
+        <td class="wx">중화<span class="s">53</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>수</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">3</td>
+        <td class="num">1940-09-11 09:54<span class="g">여</span></td>
+        <td class="gz">경진 을유 정사 을사</td>
+        <td class="gz">경진 을유 정사 을사</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">+1</span></td>
+        <td class="wx">신강<span class="s">62</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>토</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">4</td>
+        <td class="num">1970-11-16 06:26<span class="g">남</span></td>
+        <td class="gz">경술 정해 경자 기묘</td>
+        <td class="gz">경술 정해 경자 기묘</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-1</span></td>
+        <td class="wx">중화<span class="s">39</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>토</b></td>
+        <td class="cause c-pol">정책 차이</td>
+      </tr>
+      <tr>
+        <td class="num">5</td>
+        <td class="num">1969-08-03 02:53<span class="g">여</span></td>
+        <td class="gz">기유 신미 경술 정축</td>
+        <td class="gz">기유 신미 경술 정축</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+5.5</span></td>
+        <td class="wx">신강<span class="s">83</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>수</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">6</td>
+        <td class="num">1974-07-01 16:00<span class="g">남</span></td>
+        <td class="gz">갑인 경오 계묘 경신</td>
+        <td class="gz">갑인 경오 계묘 경신</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-2</span></td>
+        <td class="wx">중화<span class="s">46</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">7</td>
+        <td class="num">1994-11-01 15:32<span class="g">여</span></td>
+        <td class="gz">갑술 갑술 신묘 병신</td>
+        <td class="gz">갑술 갑술 신묘 병신</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-0.5</span></td>
+        <td class="wx">중화<span class="s">46</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>토</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">8</td>
+        <td class="num">1943-10-05 06:22<span class="g">여</span></td>
+        <td class="gz">계미 신유 병신 신묘</td>
+        <td class="gz">계미 신유 병신 신묘</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신약<span class="s">-4</span></td>
+        <td class="wx">신약<span class="s">21</span></td>
+        <td class="wx"><b>목</b></td>
+        <td class="wx"><b>목</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">9</td>
+        <td class="num">1988-05-28 00:48<span class="g">여</span></td>
+        <td class="gz">무진 정사 계미 임자</td>
+        <td class="gz">무진 정사 계미 임자</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-2.5</span></td>
+        <td class="wx">신약<span class="s">29</span></td>
+        <td class="wx"><b>금</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">10</td>
+        <td class="num">1983-06-10 17:18<span class="g">여</span></td>
+        <td class="gz">계해 무오 기사 임신</td>
+        <td class="gz">계해 무오 기사 임신</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+3.5</span></td>
+        <td class="wx">신강<span class="s">64</span></td>
+        <td class="wx"><b>목</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">11</td>
+        <td class="num">1983-10-06 10:44<span class="g">남</span></td>
+        <td class="gz">계해 신유 정묘 을사</td>
+        <td class="gz">계해 신유 정묘 을사</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-0.5</span></td>
+        <td class="wx">중화<span class="s">46</span></td>
+        <td class="wx"><b>토</b></td>
+        <td class="wx"><b>목</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">12</td>
+        <td class="num">1932-07-23 09:38<span class="g">남</span></td>
+        <td class="gz">임신 정미 을유 신사</td>
+        <td class="gz">임신 정미 을유 신사</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신약<span class="s">-3.5</span></td>
+        <td class="wx">신약<span class="s">20</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>수</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">13</td>
+        <td class="num">1938-09-24 01:36<span class="g">남</span></td>
+        <td class="gz">무인 신유 기미 을축</td>
+        <td class="gz">무인 신유 기미 을축</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">+0.5</span></td>
+        <td class="wx">중화<span class="s">47</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>화</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">14</td>
+        <td class="num">1982-01-25 11:22<span class="g">남</span></td>
+        <td class="gz">신유 신축 무신 정사</td>
+        <td class="gz">신유 신축 무신 정사</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">+1</span></td>
+        <td class="wx">중화<span class="s">55</span></td>
+        <td class="wx"><b>목</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">15</td>
+        <td class="num">1999-09-03 09:23<span class="g">남</span></td>
+        <td class="gz">기묘 임신 무오 병진</td>
+        <td class="gz">기묘 임신 무오 병진</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">+1.5</span></td>
+        <td class="wx">신강<span class="s">55</span></td>
+        <td class="wx"><b>목</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">16</td>
+        <td class="num">1941-03-02 09:52<span class="g">남</span></td>
+        <td class="gz">신사 경인 기유 기사</td>
+        <td class="gz">신사 경인 기유 기사</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신약<span class="s">-4.5</span></td>
+        <td class="wx">중화<span class="s">39</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>화</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">17</td>
+        <td class="num">1987-02-26 00:36<span class="g">여</span></td>
+        <td class="gz">정묘 임인 병오 무자</td>
+        <td class="gz">정묘 임인 병오 무자</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+4.5</span></td>
+        <td class="wx">신강<span class="s">64</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>토</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">18</td>
+        <td class="num">1992-04-26 12:29<span class="g">남</span></td>
+        <td class="gz">임신 갑진 임신 병오</td>
+        <td class="gz">임신 갑진 임신 병오</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-1</span></td>
+        <td class="wx">중화<span class="s">43</span></td>
+        <td class="wx"><b>금</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">19</td>
+        <td class="num">1958-12-26 03:09<span class="g">남</span></td>
+        <td class="gz">무술 갑자 정축 임인</td>
+        <td class="gz">무술 갑자 정축 신축</td>
+        <td><span class="pill no">불일치</span></td>
+        <td class="wx">신약<span class="s">-3.5</span></td>
+        <td class="wx">신약<span class="s">28</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>목</b></td>
+        <td class="cause c-etc">팔자 불일치(비교 불가)</td>
+      </tr>
+      <tr>
+        <td class="num">20</td>
+        <td class="num">1987-11-06 06:48<span class="g">남</span></td>
+        <td class="gz">정묘 경술 기미 정묘</td>
+        <td class="gz">정묘 경술 기미 정묘</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+6</span></td>
+        <td class="wx">신강<span class="s">69</span></td>
+        <td class="wx"><b>목</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">21</td>
+        <td class="num">1970-10-29 23:42<span class="g">남</span></td>
+        <td class="gz">경술 병술 계미 임자</td>
+        <td class="gz">경술 병술 계미 임자</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-2.5</span></td>
+        <td class="wx">중화<span class="s">35</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-pol">정책 차이</td>
+      </tr>
+      <tr>
+        <td class="num">22</td>
+        <td class="num">1995-09-28 06:48<span class="g">남</span></td>
+        <td class="gz">을해 을유 임술 계묘</td>
+        <td class="gz">을해 을유 임술 계묘</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">+0.5</span></td>
+        <td class="wx">중화<span class="s">52</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>목</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">23</td>
+        <td class="num">1996-07-20 20:00<span class="g">여</span></td>
+        <td class="gz">병자 을미 무오 임술</td>
+        <td class="gz">병자 을미 무오 임술</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+5</span></td>
+        <td class="wx">신강<span class="s">64</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-pol">정책 차이</td>
+      </tr>
+      <tr>
+        <td class="num">24</td>
+        <td class="num">1959-10-19 12:00<span class="g">남</span></td>
+        <td class="gz">기해 갑술 갑술 경오</td>
+        <td class="gz">기해 갑술 갑술 경오</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신약<span class="s">-3.5</span></td>
+        <td class="wx">신약<span class="s">34</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>수</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">25</td>
+        <td class="num">1971-03-02 03:00<span class="g">여</span></td>
+        <td class="gz">신해 경인 병술 기축</td>
+        <td class="gz">신해 경인 병술 기축</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">0</span></td>
+        <td class="wx">중화<span class="s">36</span></td>
+        <td class="wx"><b>목</b></td>
+        <td class="wx"><b>목</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">26</td>
+        <td class="num">2007-03-01 03:22<span class="g">남</span></td>
+        <td class="gz">정해 임인 갑오 을축</td>
+        <td class="gz">정해 임인 갑오 을축</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+3</span></td>
+        <td class="wx">신강<span class="s">67</span></td>
+        <td class="wx"><b>금</b></td>
+        <td class="wx"><b>화</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">27</td>
+        <td class="num">1998-02-17 13:10<span class="g">남</span></td>
+        <td class="gz">무인 갑인 을미 임오</td>
+        <td class="gz">무인 갑인 을미 임오</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+3</span></td>
+        <td class="wx">신강<span class="s">66</span></td>
+        <td class="wx"><b>금</b></td>
+        <td class="wx"><b>화</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">28</td>
+        <td class="num">2005-09-26 16:01<span class="g">여</span></td>
+        <td class="gz">을유 을유 계축 경신</td>
+        <td class="gz">을유 을유 계축 경신</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">+1.5</span></td>
+        <td class="wx">신강<span class="s">57</span></td>
+        <td class="wx"><b>토</b></td>
+        <td class="wx"><b>목</b></td>
+        <td class="cause c-pol">정책 차이</td>
+      </tr>
+      <tr>
+        <td class="num">29</td>
+        <td class="num">1963-04-02 00:00<span class="g">여</span></td>
+        <td class="gz">계묘 을묘 을해 병자</td>
+        <td class="gz">계묘 을묘 을해 병자</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+6.5</span></td>
+        <td class="wx">신강<span class="s">86</span></td>
+        <td class="wx"><b>금</b></td>
+        <td class="wx"><b>화</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">30</td>
+        <td class="num">1988-04-04 02:37<span class="g">남</span></td>
+        <td class="gz">무진 을묘 기축 을축</td>
+        <td class="gz">무진 을묘 기축 을축</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-1</span></td>
+        <td class="wx">신강<span class="s">49</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-pol">정책 차이</td>
+      </tr>
+      <tr>
+        <td class="num">31</td>
+        <td class="num">1935-04-16 23:36<span class="g">여</span></td>
+        <td class="gz">을해 경진 계해 임자</td>
+        <td class="gz">을해 경진 계해 임자</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">+1</span></td>
+        <td class="wx">신강<span class="s">68</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>목</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">32</td>
+        <td class="num">1941-06-16 06:47<span class="g">남</span></td>
+        <td class="gz">신사 갑오 을미 기묘</td>
+        <td class="gz">신사 갑오 을미 기묘</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-1.5</span></td>
+        <td class="wx">신약<span class="s">37</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>수</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">33</td>
+        <td class="num">1968-04-04 23:27<span class="g">남</span></td>
+        <td class="gz">무신 을묘 갑진 을해</td>
+        <td class="gz">무신 을묘 갑진 을해</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+4.5</span></td>
+        <td class="wx">신강<span class="s">66</span></td>
+        <td class="wx"><b>금</b></td>
+        <td class="wx"><b>화</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">34</td>
+        <td class="num">1932-09-30 07:57<span class="g">여</span></td>
+        <td class="gz">임신 기유 갑오 무진</td>
+        <td class="gz">임신 기유 갑오 무진</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신약<span class="s">-3.5</span></td>
+        <td class="wx">신약<span class="s">20</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>수</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">35</td>
+        <td class="num">1996-04-06 09:55<span class="g">남</span></td>
+        <td class="gz">병자 임진 계유 정사</td>
+        <td class="gz">병자 임진 계유 정사</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-0.5</span></td>
+        <td class="wx">중화<span class="s">50</span></td>
+        <td class="wx"><b>목</b></td>
+        <td class="wx"><b>목</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">36</td>
+        <td class="num">1983-02-28 03:47<span class="g">여</span></td>
+        <td class="gz">계해 갑인 정해 임인</td>
+        <td class="gz">계해 갑인 정해 임인</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">+1</span></td>
+        <td class="wx">중화<span class="s">50</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>토</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">37</td>
+        <td class="num">1952-06-10 10:59<span class="g">여</span></td>
+        <td class="gz">임진 병오 정해 을사</td>
+        <td class="gz">임진 병오 정해 을사</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+3.5</span></td>
+        <td class="wx">신강<span class="s">65</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>토</b></td>
+        <td class="cause c-pol">정책 차이</td>
+      </tr>
+      <tr>
+        <td class="num">38</td>
+        <td class="num">1951-12-20 23:58<span class="g">여</span></td>
+        <td class="gz">신묘 경자 을미 병자</td>
+        <td class="gz">신묘 경자 을미 병자</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">0</span></td>
+        <td class="wx">중화<span class="s">46</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>수</b></td>
+        <td class="cause c-pol">정책 차이</td>
+      </tr>
+      <tr>
+        <td class="num">39</td>
+        <td class="num">2000-04-10 16:20<span class="g">남</span></td>
+        <td class="gz">경진 경진 무술 경신</td>
+        <td class="gz">경진 경진 무술 경신</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+3</span></td>
+        <td class="wx">신강<span class="s">62</span></td>
+        <td class="wx"><b>목</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">40</td>
+        <td class="num">1939-04-28 02:54<span class="g">여</span></td>
+        <td class="gz">기묘 무진 을미 정축</td>
+        <td class="gz">기묘 무진 을미 정축</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신약<span class="s">-4</span></td>
+        <td class="wx">신약<span class="s">22</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>수</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">41</td>
+        <td class="num">1949-10-09 09:22<span class="g">여</span></td>
+        <td class="gz">기축 갑술 임신 갑진</td>
+        <td class="gz">기축 갑술 임신 갑진</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-2.5</span></td>
+        <td class="wx">중화<span class="s">29</span></td>
+        <td class="wx"><b>금</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">42</td>
+        <td class="num">1956-05-30 01:40<span class="g">남</span></td>
+        <td class="gz">병신 계사 정유 경자</td>
+        <td class="gz">병신 계사 정유 신축</td>
+        <td><span class="pill no">불일치</span></td>
+        <td class="wx">중화<span class="s">+1</span></td>
+        <td class="wx">중화<span class="s">42</span></td>
+        <td class="wx"><b>수</b></td>
+        <td class="wx"><b>목</b></td>
+        <td class="cause c-etc">팔자 불일치(비교 불가)</td>
+      </tr>
+      <tr>
+        <td class="num">43</td>
+        <td class="num">1993-11-06 10:25<span class="g">여</span></td>
+        <td class="gz">계유 임술 신묘 계사</td>
+        <td class="gz">계유 임술 신묘 계사</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">0</span></td>
+        <td class="wx">중화<span class="s">42</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>토</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">44</td>
+        <td class="num">1989-11-27 12:08<span class="g">여</span></td>
+        <td class="gz">기사 을해 신묘 갑오</td>
+        <td class="gz">기사 을해 신묘 갑오</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-2.5</span></td>
+        <td class="wx">신약<span class="s">21</span></td>
+        <td class="wx"><b>토</b></td>
+        <td class="wx"><b>토</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">45</td>
+        <td class="num">2005-04-28 21:04<span class="g">남</span></td>
+        <td class="gz">을유 경진 임오 경술</td>
+        <td class="gz">을유 경진 임오 경술</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신약<span class="s">-3</span></td>
+        <td class="wx">중화<span class="s">42</span></td>
+        <td class="wx"><b>금</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">46</td>
+        <td class="num">1983-12-01 11:37<span class="g">여</span></td>
+        <td class="gz">계해 계해 계해 무오</td>
+        <td class="gz">계해 계해 계해 무오</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신강<span class="s">+6.5</span></td>
+        <td class="wx">신강<span class="s">80</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>목</b></td>
+        <td class="cause c-pol">정책 차이</td>
+      </tr>
+      <tr>
+        <td class="num">47</td>
+        <td class="num">1984-05-08 01:01<span class="g">남</span></td>
+        <td class="gz">갑자 기사 임인 경자</td>
+        <td class="gz">갑자 기사 임인 경자</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신약<span class="s">-3</span></td>
+        <td class="wx">중화<span class="s">39</span></td>
+        <td class="wx"><b>금</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-ok">일치</td>
+      </tr>
+      <tr>
+        <td class="num">48</td>
+        <td class="num">1996-11-18 13:30<span class="g">남</span></td>
+        <td class="gz">병자 기해 기미 경오</td>
+        <td class="gz">병자 기해 기미 경오</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">+1</span></td>
+        <td class="wx">신강<span class="s">59</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-pol">정책 차이</td>
+      </tr>
+      <tr>
+        <td class="num">49</td>
+        <td class="num">1957-11-21 22:43<span class="g">남</span></td>
+        <td class="gz">정유 신해 정유 신해</td>
+        <td class="gz">정유 신해 정유 신해</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">신약<span class="s">-4</span></td>
+        <td class="wx">신약<span class="s">19</span></td>
+        <td class="wx"><b>화</b></td>
+        <td class="wx"><b>목</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      <tr>
+        <td class="num">50</td>
+        <td class="num">1991-09-15 11:49<span class="g">여</span></td>
+        <td class="gz">신미 정유 무자 무오</td>
+        <td class="gz">신미 정유 무자 무오</td>
+        <td><span class="pill ok">일치</span></td>
+        <td class="wx">중화<span class="s">-0.5</span></td>
+        <td class="wx">중화<span class="s">53</span></td>
+        <td class="wx"><b>목</b></td>
+        <td class="wx"><b>금</b></td>
+        <td class="cause c-etc">기타</td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    표본: 고정 시드 LCG로 생성한 1930~2010년 무작위 50건(1번은 §9 회귀 케이스). 전 표본 서울·양력.<br>
+    재현: <code>cd engine &amp;&amp; node test/compare-yongsin-sazu.js out.json 50 &amp;&amp; node test/report-yongsin-sazu.mjs out.json</code>
+  </footer>
+</div>

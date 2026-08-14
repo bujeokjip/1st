@@ -2,3 +2,4 @@
 node_modules/
 .omc/
 **/settings.local.json
+engine/.sazu-key

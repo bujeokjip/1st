@@ -47,7 +47,11 @@ export function strength(P) {
   }
   total = Math.round(total * 10) / 10;
   const band = total >= 1 ? 'strong' : total > -1 ? 'mid' : 'weak';
-  return { total, band };
+  // §4 판정표 라벨. verdict3은 외부 만세력과 대조할 때 쓰는 3분류(신강/중화/신약).
+  const verdict = total >= 3 ? '신강' : total >= 1 ? '중화 (신강 쪽)'
+    : total > -1 ? '중화' : total > -3 ? '중화 (신약 쪽)' : '신약';
+  const verdict3 = total >= 3 ? '신강' : total <= -3 ? '신약' : '중화';
+  return { total, band, verdict, verdict3 };
 }
 
 /* §5 한난조습(조후) — need: 1(화, 한) / 4(수, 열) / −1(평) */

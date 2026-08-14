@@ -23,8 +23,7 @@ const MIN = 60_000;
 /* 자시 시작 시각(진태양시 기준, 분) — 기획 소유 수치(§3-6).
    시지(時支)의 기준점이자 일주가 다음 날로 넘어가는 경계로 함께 쓴다(둘이 같아야 야자시 구간이 안 생긴다).
    표준(23:00) 대비 이동량만큼 시각을 되돌린 뒤 기존 시지 공식을 적용한다. */
-const ZI_BOUNDARY = 23 * 60 + 30;
-const ZI_SHIFT = ZI_BOUNDARY - 23 * 60;
+export const ZI_BOUNDARY = 23 * 60 + 30;
 
 const jdn = (y, m, d) => {
   const a = Math.floor((14 - m) / 12), yy = y + 4800 - a, mm = m + 12 * a - 3;
@@ -68,7 +67,9 @@ export async function computeSajuPalja(input) {
     year, month, day, hour, minute = 0,
     useKasiIljin = true, preferExactTerms = true, termsProvider = 'kasi',
     longitudeDeg = LONGITUDE.서울, applyLongitude = true, tzOffsetMinutes,
+    ziBoundaryMinutes = ZI_BOUNDARY, // 검증·정책 비교용 오버라이드 (기본은 기획 확정값)
   } = input;
+  const ziShift = ziBoundaryMinutes - 23 * 60;
   const warnings = [];
   const sources = { iljin: 'local-jdn', terms: null };
 
@@ -98,7 +99,7 @@ export async function computeSajuPalja(input) {
 
   // ── 일주 (§3-1) — 조자시설: 진태양시 23:30(자시 시작)부터 다음 날 일주 (§3-6)
   const solarMinutes = solar.hh * 60 + solar.mi;
-  const early = solarMinutes >= ZI_BOUNDARY;
+  const early = solarMinutes >= ziBoundaryMinutes;
   const dayDate = early ? addDays(solar, 1) : { y: solar.y, m: solar.m, d: solar.d };
   const localIdx = ((jdn(dayDate.y, dayDate.m, dayDate.d) + 49) % 60 + 60) % 60;
   let day_ = { stem: localIdx % 10, branch: localIdx % 12 };
@@ -140,7 +141,7 @@ export async function computeSajuPalja(input) {
   const monthP = { stem: (huDun[yearP.stem % 5] + ((mBranch - 2) % 12 + 12) % 12) % 10, branch: mBranch };
 
   // ── 시주 (§3-5) — 오서둔, 진태양시 기준(자시 시작 시각만큼 되돌려 적용)
-  const shiftedHour = Math.floor(((solarMinutes - ZI_SHIFT + 1440) % 1440) / 60);
+  const shiftedHour = Math.floor(((solarMinutes - ziShift + 1440) % 1440) / 60);
   const hBranch = Math.floor(((shiftedHour + 1) % 24) / 2);
   const shuDun = [0, 2, 4, 6, 8];
   const hourP = { stem: (shuDun[day_.stem % 5] + hBranch) % 10, branch: hBranch };
@@ -169,7 +170,12 @@ export async function computeSajuPalja(input) {
     meta: {
       sources,
       warnings,
-      time: { stdOffsetMinutes: stdOffset, dstMinutes: dst, longitudeDeg: applyLongitude ? longitudeDeg : null, longitudeCorrection, dayBoundary: '조자시(진태양시 23:30)' },
+      time: {
+        stdOffsetMinutes: stdOffset, dstMinutes: dst,
+        longitudeDeg: applyLongitude ? longitudeDeg : null, longitudeCorrection,
+        ziBoundaryMinutes,
+        dayBoundary: `조자시(진태양시 ${String(Math.floor(ziBoundaryMinutes / 60)).padStart(2, '0')}:${String(ziBoundaryMinutes % 60).padStart(2, '0')})`,
+      },
     },
   };
 }
