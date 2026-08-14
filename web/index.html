@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>부적집 — 용신찾기</title>
+<!-- 웹폰트: 오프라인이면 시스템 명조로 폴백 (유일한 외부 의존, 부적집 원본과 동일 정책) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Serif+KR:wght@400;600;900&family=Noto+Serif+TC:wght@900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#241710; --bg-2:#2B1C12; --bg-deep:#170E08;
+    --gold:#C9A76A; --gold-strong:#E7C887; --gold-bright:#EFDCAE;
+    --gold-dim:#A98F62; --gold-faint:#8A6F45; --cream:#F2E2BB; --ink:#241811;
+    --serif:'Gowun Batang','Noto Serif KR','Nanum Myeongjo','AppleMyungjo','Batang','바탕',serif;
+    --serif-han:'Noto Serif KR','Noto Serif TC','Nanum Myeongjo','Batang',serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--gold-bright);
+    font-family:var(--serif); line-height:1.6;
+    background-image:
+      radial-gradient(ellipse at 50% 0%, rgba(255,220,150,.045) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 100%, rgba(0,0,0,.35) 0%, transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='194' viewBox='0 0 112 194'%3E%3Cg fill='none' stroke='%23C9A76A' stroke-opacity='.05' stroke-width='1'%3E%3Cpath d='M56 1 L110 32 L110 96 L56 129 L2 96 L2 32 Z'/%3E%3Cpath d='M0 98 L2 96 M110 96 L112 98 M56 129 L56 193 M0 162 L56 129 M112 162 L56 129'/%3E%3C/g%3E%3C/svg%3E");
+    background-attachment:fixed;
+  }
+  [hidden]{display:none !important;}
+  .frame{width:min(860px,92vw); margin:0 auto; padding:44px 0 70px;}
+  .eyebrow{font-size:clamp(14px,1.6vw,17px); letter-spacing:.34em; color:var(--gold); text-align:center; margin:0 0 6px; font-weight:700;}
+  h1.title{
+    font-size:clamp(36px,6vw,58px); font-weight:700; letter-spacing:.12em;
+    color:var(--gold-strong); text-align:center; margin:0 0 14px; line-height:1.15;
+    text-shadow:0 2px 14px rgba(231,200,135,.14);
+  }
+  .lede{color:#C4AC7F; text-align:center; font-size:clamp(13px,1.5vw,15.5px); margin:0 auto 46px; max-width:60ch;}
+
+  /* ── 입력 ── */
+  .form-wrap{width:min(680px,100%); margin:0 auto;}
+  .row{margin:0 0 26px;}
+  .flabel{font-size:14.5px; color:#D9BE8C; letter-spacing:.12em; font-weight:700; margin:0 0 10px;}
+  .selects{display:flex; gap:10px; flex-wrap:wrap;}
+  select{
+    appearance:none; -webkit-appearance:none;
+    background:var(--bg-deep) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23C9A76A' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") no-repeat right 13px center;
+    border:1px solid var(--gold-faint); color:#E4CFA3; border-radius:8px;
+    font-family:inherit; font-size:14.5px; padding:11px 36px 11px 14px; cursor:pointer;
+  }
+  select:focus-visible{outline:2px solid var(--gold); outline-offset:1px;}
+  .hint{font-size:12.5px; color:#8F7A54; margin:9px 0 0;}
+  .find-row{display:flex; justify-content:center; margin-top:36px;}
+  .btn-find{
+    width:clamp(116px,14vw,144px); aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #DFC085 0%, #C9A76A 55%, #B08D57 100%);
+    color:var(--ink); border:0; cursor:pointer; font-family:inherit;
+    font-size:clamp(19px,2vw,23px); font-weight:700; letter-spacing:.18em;
+    box-shadow:0 8px 24px rgba(0,0,0,.4), inset 0 -3px 8px rgba(0,0,0,.18);
+    transition:transform .12s, box-shadow .12s;
+  }
+  .btn-find:hover{transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.45), inset 0 -3px 8px rgba(0,0,0,.18);}
+  .btn-find:active{transform:translateY(1px);}
+  .btn-find:focus-visible{outline:2px solid var(--gold-bright); outline-offset:3px;}
+  .btn-find[disabled]{opacity:.6; cursor:progress;}
+
+  /* ── 결과 ── */
+  #result{margin-top:64px;}
+  .sec-label{font-size:12.5px; letter-spacing:.3em; color:var(--gold); font-weight:700; text-align:center; margin:0 0 16px;}
+  .pillars{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; max-width:540px; margin:0 auto 12px;}
+  .pillar{
+    background:linear-gradient(160deg,#2E1E13 0%, #271A10 100%);
+    border:1px solid var(--gold-faint); border-radius:10px; text-align:center; padding:13px 4px 11px;
+  }
+  .pillar.me{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold) inset;}
+  .pillar .ptag{font-size:11px; letter-spacing:.18em; color:var(--gold-dim); font-weight:700; margin-bottom:6px;}
+  .pillar.me .ptag{color:var(--gold-strong);}
+  .pillar .pglyph{font-family:var(--serif-han); font-size:clamp(27px,6vw,38px); font-weight:900; line-height:1.22; color:#D9B879;}
+  .pillar .pko{font-size:12.5px; color:#C4AC7F; margin-top:6px;}
+  .pillar .pwx{font-size:11px; color:var(--gold-dim);}
+  .palja-line{text-align:center; font-size:12.5px; color:#8F7A54; margin:0 0 48px;}
+
+  .r-title{
+    font-size:clamp(32px,5.5vw,52px); color:var(--cream); font-weight:700;
+    letter-spacing:.06em; margin:0 0 24px; text-align:center; line-height:1.15;
+    text-shadow:0 3px 18px rgba(242,226,187,.12);
+  }
+  .r-copy{text-align:center; font-size:clamp(15px,1.9vw,18.5px); color:#E3D0A6; margin:0; line-height:2.05;}
+  .r-soft{text-align:center; font-size:13px; color:#9A8258; margin:12px 0 0;}
+  .glyph-stage{display:grid; place-items:center; margin:20px 0 6px;}
+  .glyph-char{
+    font-family:var(--serif-han); color:#D9B879; line-height:1.1;
+    font-size:clamp(130px,22vw,205px); font-weight:900;
+    text-shadow:0 4px 26px rgba(217,184,121,.22);
+  }
+  .gods{display:flex; gap:9px; justify-content:center; flex-wrap:wrap; margin:22px 0 0;}
+  .god{
+    border:1px solid var(--gold-faint); border-radius:999px; padding:6px 17px;
+    display:flex; gap:9px; align-items:baseline; background:rgba(23,14,8,.45);
+  }
+  .god.main{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold) inset;}
+  .god .g-nm{font-size:11.5px; letter-spacing:.14em; color:var(--gold-dim); font-weight:700;}
+  .god.main .g-nm{color:var(--gold-strong);}
+  .god .g-wx{font-size:14.5px; color:#E4CFA3; font-weight:700;}
+
+  /* 계산 근거 */
+  details.calc{max-width:520px; margin:38px auto 0; border-top:1px solid rgba(138,111,69,.4); padding-top:14px;}
+  details.calc summary{
+    cursor:pointer; font-size:12.5px; letter-spacing:.14em; color:var(--gold-dim);
+    list-style:none; text-align:center;
+  }
+  details.calc summary::-webkit-details-marker{display:none;}
+  details.calc summary:hover{color:var(--gold);}
+  .calc-grid{
+    display:grid; grid-template-columns:auto 1fr; gap:7px 18px; margin-top:16px;
+    font-size:12.5px; line-height:1.7;
+  }
+  .c-k{color:var(--gold-dim); letter-spacing:.06em; white-space:nowrap;}
+  .c-v{color:#C4AC7F;}
+
+  /* ── 모달·폴백 ── */
+  .overlay{position:fixed; inset:0; background:rgba(10,5,2,.74); z-index:40; display:none; align-items:center; justify-content:center; padding:20px;}
+  .overlay.on{display:flex;}
+  .modal{
+    background:linear-gradient(165deg,#2E1D10 0%, #271808 100%);
+    border:1.5px solid var(--gold-faint); border-radius:12px;
+    width:min(540px,94vw); padding:34px 30px 28px; text-align:center;
+    box-shadow:0 22px 60px rgba(0,0,0,.6);
+  }
+  .modal h3{margin:0 0 16px; font-size:clamp(21px,3vw,27px); color:var(--gold-strong); letter-spacing:.1em; font-weight:700;}
+  .modal .m-body{font-size:14.5px; color:#E0CBA0; line-height:1.95; margin:0 0 22px;}
+  .pill{
+    border:1px solid var(--gold-faint); color:#E3C994; background:transparent;
+    font-family:inherit; font-size:14px; padding:9px 22px; border-radius:999px; cursor:pointer;
+  }
+  .pill:hover{border-color:var(--gold);}
+  .pill:focus-visible{outline:2px solid var(--gold-bright); outline-offset:2px;}
+  #scr-error{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+  #scr-error .boom{font-size:clamp(44px,7vw,68px); color:var(--gold-strong); font-weight:700; letter-spacing:.1em; margin:0 0 16px;}
+  #scr-error p{color:#D9BE8C; font-size:16px; margin:0 0 32px;}
+
+  footer{text-align:center; padding:44px 0 26px; color:#6E5836; font-size:11.5px; letter-spacing:.08em; line-height:1.9;}
+  @media (prefers-reduced-motion:reduce){ .btn-find{transition:none;} }
+</style>
+</head>
+<body>
+
+<div id="scr-main">
+  <div class="frame">
+    <p class="eyebrow">부적집</p>
+    <h1 class="title">용신찾기</h1>
+    <p class="lede">좀 더 균형잡힌 삶을 위해 사주에 부족하거나 넘치는 기운을 알아봅니다. 단, 재미로 봅시다! :)</p>
+
+    <div class="form-wrap">
+      <div class="row">
+        <p class="flabel">생년월일 (양력)</p>
+        <div class="selects">
+          <select id="selY" aria-label="태어난 해"></select>
+          <select id="selM" aria-label="태어난 달"></select>
+          <select id="selD" aria-label="태어난 날"></select>
+        </div>
+      </div>
+
+      <div class="row">
+        <p class="flabel">태어난 시각</p>
+        <div class="selects">
+          <select id="selH" aria-label="태어난 시"><option value="" selected>시</option></select>
+          <select id="selMin" aria-label="태어난 분"></select>
+        </div>
+        <p class="hint">출생 기록에 적힌 시각 그대로 넣으세요. 서머타임·표준시 변경은 알아서 되돌립니다.</p>
+      </div>
+
+      <div class="row">
+        <p class="flabel">태어난 도시</p>
+        <div class="selects"><select id="selCity" aria-label="태어난 도시" style="min-width:230px"></select></div>
+        <p class="hint">도시마다 해가 뜨는 시각이 달라, 시주(時柱)가 갈릴 수 있어요.</p>
+      </div>
+
+      <div class="find-row"><button class="btn-find" id="btnFind">찾기</button></div>
+    </div>
+
+    <section id="result" hidden>
+      <p class="sec-label">당신의 사주팔자</p>
+      <div class="pillars" id="pillars"></div>
+      <p class="palja-line" id="paljaLine"></p>
+
+      <h2 class="r-title">찾았다, 요놈!</h2>
+      <p class="r-copy" id="rCopy"></p>
+      <p class="r-soft" id="rSoft" hidden>이 사주는 중화에 가까워 해석의 여지가 있어요. 참고용으로 봐주세요.</p>
+      <div class="glyph-stage"><div class="glyph-char" id="yongGlyph"></div></div>
+      <div class="gods" id="gods"></div>
+
+      <details class="calc">
+        <summary>계산 근거 보기</summary>
+        <div class="calc-grid" id="calcRows"></div>
+      </details>
+    </section>
+  </div>
+  <footer>
+    부적집 · 명리 기반 재미 서비스 — 입력값은 저장되지 않고 브라우저 안에서만 계산됩니다<br>
+    절기는 천문 계산 기준 · 계산 정책은 용신산출 정책명세서 §3~§6
+  </footer>
+</div>
+
+<!-- 오류 폴백 (§10-E) -->
+<section id="scr-error" hidden>
+  <p class="boom">띠용!</p>
+  <p>일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.</p>
+  <button class="pill" id="btnErrHome">처음으로 돌아가기</button>
+</section>
+
+<!-- 모달: 출생 시각 모름 (§10-A) -->
+<div class="overlay" id="ovTime">
+  <div class="modal">
+    <h3>잠깐!</h3>
+    <p class="m-body">태어난 시(時)를 알아야 용신을 정확히 뽑을 수 있어요.<br>
+    시각을 모른다면 가족에게 물어보거나, 출생증명서를 확인해보세요.</p>
+    <button class="pill" data-close>시각 입력하러 가기</button>
+  </div>
+</div>
+
+<script type="module">/*__APP_JS__*/</script>
+</body>
+</html>

@@ -10,11 +10,23 @@ import { computeSajuPalja } from './src/manse.js';
 
 const r = await computeSajuPalja({
   year: 1979, month: 2, day: 2, hour: 16, minute: 45,
-  tzOffsetMinutes: 540, // 출생지 UTC 오프셋(분). 기본 540 = KST
+  // 이하 전부 선택 — 기본값은 서울·경도 보정 ON·한국 표준시 이력 자동 판정
+  // longitudeDeg: LONGITUDE.부산,   // 출생 도시 경도
+  // applyLongitude: false,          // 경도 보정 끄기
+  // tzOffsetMinutes: 480,           // 해외 출생 등 표준시를 직접 지정(한국 이력 표 무시)
 });
-r.palja.ko;   // '무오 을축 경자 갑신'
-r.pillars;    // { year:{stem,branch}, month, day, hour } — §1 인덱스 체계
-r.meta;       // { sources, warnings } — 어떤 데이터 소스를 썼는지
+r.palja.ko;    // '무오 을축 경자 갑신'
+r.pillars;     // { year:{stem,branch}, month, day, hour } — §1 인덱스 체계
+r.solarTime;   // 진태양시 + 보정량 + 조자시 진입 여부
+r.meta;        // { sources, warnings, time } — 데이터 소스와 적용된 시각 보정
+```
+
+2단계(용신)는 1단계 출력을 그대로 받는다:
+
+```js
+import { computeYongsin } from './src/yongsin.js';
+const { strength, climate, yongsin } = computeYongsin(r.pillars);
+// strength {total:1, band:'strong'} · climate {net:-2, need:1} · yongsin {U:1, hee:0, gi:4, both:true}
 ```
 
 CLI 확인: `node src/cli.js 1979-02-02 16:45` · 테스트: `npm test` (KASI API 호출 발생)
@@ -74,10 +86,20 @@ CLI: `node src/cli.js 1979-02-02 16:45 --nasa`
   - `node test/validate-astro.js` — 천문 계산 vs KASI 대조
   - `node test/validate-jpl.js [년도들]` — JPL Horizons 대조 (기본 8개 연도, 연도당 API 1회)
 
-## 남은 정책 결정(기획)
+## 확정된 시각 정책 (2026-08-14 개정, 명세서 §3-6)
 
-- 절기 정밀도 상향 여지: 천문 계산(Meeus)의 실측 오차는 최대 ±8분(자정 근접 절기에서만 날짜 오분류 가능).
-  더 조이려면 JPL Horizons로 절기 테이블을 사전 생성해 데이터로 내장하면 됨(`test/validate-jpl.js`의 교차 계산 재활용).
-- 진태양시(경도) 보정: 명세서 §3-6 기본 OFF 그대로 미적용. `tzOffsetMinutes`는 표준시 변환만 담당.
-- 서머타임(한국 1948–60, 1987–88 시행) 이력 보정: 명세서에 정책 없음 → 미적용.
-- 야자시/조자시: §3-6 자정 기준 일 변경 정책 그대로.
+이전에 "남은 결정"으로 열어뒀던 항목이 전부 확정돼 구현에 반영됐다.
+
+| 항목 | 확정 정책 | 구현 |
+|---|---|---|
+| 경도 보정(진태양시) | **기본 ON**, 한국 기준(서울 −32분). 균시차는 미적용 | `longitudeDeg`·`applyLongitude` |
+| 서머타임 | **적용**. 한국 시행 12구간(1948~60, 1987~88)은 1시간 되돌림 | `korea-time.js` |
+| 표준시 이력 | **적용**. UTC+8:30 시행기(~1911, 1954~61)를 그 기준으로 환산 | `korea-time.js` |
+| 일주 경계 | **조자시설**, 기준 **진태양시 23:30**부터 다음 날 일주(시간은 넘어간 일간 기준 오서둔). 23:00~23:29는 야자시 구간(시지만 자) | `manse.js`의 `ZI_BOUNDARY` |
+| 절입 오차 | **±8분 허용**. JPL 대조 실측(평균 2.3분·최대 8.0분)을 허용 오차로 인정 | — |
+
+보정 적용 범위에 주의: **절기 비교(연주·월주)에는 경도·서머타임 보정을 적용하지 않는다.**
+절입은 물리적 순간이라 출생지와 무관하므로 순간 대 순간으로 비교해야 한다.
+경도 보정은 시주와 일주 경계에만 쓴다(§3-6 (3)).
+
+남은 항목: 음력 입력 미지원(필요 시 음↔양 변환 선행).

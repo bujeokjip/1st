@@ -152,6 +152,10 @@ export async function getTermNodes(y, { preferExact = true, provider = 'kasi' } 
   try {
     const used = new Set();
     const pick = async yr => {
+      if (provider === 'astro') { // 네트워크 완전 배제 모드(브라우저 배포용)
+        used.add('astro');
+        return astroYearTerms(yr);
+      }
       if (provider === 'jpl') {
         try {
           const t = await jplYearTerms(yr);

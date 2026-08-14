@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "bujeokjip",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "8017", "--bind", "127.0.0.1"],
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["web/serve.mjs"],
       "port": 8017
     }
   ]

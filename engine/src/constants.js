@@ -9,6 +9,16 @@ export const JI_WX = [4, 2, 0, 0, 2, 1, 1, 2, 3, 3, 2, 4];
 export const WX_KO = ['목', '화', '토', '금', '수'];
 export const WX_HAN = ['木', '火', '土', '金', '水'];
 
+/* 삼합국: 지지 세트 → 국 오행 (§1) */
+export const SAMHAP = [
+  { set: [8, 0, 4], wx: 4 },  // 申子辰 수
+  { set: [2, 6, 10], wx: 1 }, // 寅午戌 화
+  { set: [5, 9, 1], wx: 3 },  // 巳酉丑 금
+  { set: [11, 3, 7], wx: 0 }, // 亥卯未 목
+];
+/* 천간합: [간a, 간b, 합화 오행] (§1) */
+export const GANHAP = [[0, 5, 2], [1, 6, 3], [2, 7, 4], [3, 8, 0], [4, 9, 1]];
+
 export const ganjiHan = p => GAN[p.stem] + JI[p.branch];
 export const ganjiKo = p => GAN_KO[p.stem] + JI_KO[p.branch];
 

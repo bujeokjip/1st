@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>부적집 — 용신찾기</title>
+<!-- 웹폰트: 오프라인이면 시스템 명조로 폴백 (유일한 외부 의존, 부적집 원본과 동일 정책) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Serif+KR:wght@400;600;900&family=Noto+Serif+TC:wght@900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#241710; --bg-2:#2B1C12; --bg-deep:#170E08;
+    --gold:#C9A76A; --gold-strong:#E7C887; --gold-bright:#EFDCAE;
+    --gold-dim:#A98F62; --gold-faint:#8A6F45; --cream:#F2E2BB; --ink:#241811;
+    --serif:'Gowun Batang','Noto Serif KR','Nanum Myeongjo','AppleMyungjo','Batang','바탕',serif;
+    --serif-han:'Noto Serif KR','Noto Serif TC','Nanum Myeongjo','Batang',serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--gold-bright);
+    font-family:var(--serif); line-height:1.6;
+    background-image:
+      radial-gradient(ellipse at 50% 0%, rgba(255,220,150,.045) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 100%, rgba(0,0,0,.35) 0%, transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='112' height='194' viewBox='0 0 112 194'%3E%3Cg fill='none' stroke='%23C9A76A' stroke-opacity='.05' stroke-width='1'%3E%3Cpath d='M56 1 L110 32 L110 96 L56 129 L2 96 L2 32 Z'/%3E%3Cpath d='M0 98 L2 96 M110 96 L112 98 M56 129 L56 193 M0 162 L56 129 M112 162 L56 129'/%3E%3C/g%3E%3C/svg%3E");
+    background-attachment:fixed;
+  }
+  [hidden]{display:none !important;}
+  .frame{width:min(860px,92vw); margin:0 auto; padding:44px 0 70px;}
+  .eyebrow{font-size:clamp(14px,1.6vw,17px); letter-spacing:.34em; color:var(--gold); text-align:center; margin:0 0 6px; font-weight:700;}
+  h1.title{
+    font-size:clamp(36px,6vw,58px); font-weight:700; letter-spacing:.12em;
+    color:var(--gold-strong); text-align:center; margin:0 0 14px; line-height:1.15;
+    text-shadow:0 2px 14px rgba(231,200,135,.14);
+  }
+  .lede{color:#C4AC7F; text-align:center; font-size:clamp(13px,1.5vw,15.5px); margin:0 auto 46px; max-width:60ch;}
+
+  /* ── 입력 ── */
+  .form-wrap{width:min(680px,100%); margin:0 auto;}
+  .row{margin:0 0 26px;}
+  .flabel{font-size:14.5px; color:#D9BE8C; letter-spacing:.12em; font-weight:700; margin:0 0 10px;}
+  .selects{display:flex; gap:10px; flex-wrap:wrap;}
+  select{
+    appearance:none; -webkit-appearance:none;
+    background:var(--bg-deep) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23C9A76A' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") no-repeat right 13px center;
+    border:1px solid var(--gold-faint); color:#E4CFA3; border-radius:8px;
+    font-family:inherit; font-size:14.5px; padding:11px 36px 11px 14px; cursor:pointer;
+  }
+  select:focus-visible{outline:2px solid var(--gold); outline-offset:1px;}
+  .hint{font-size:12.5px; color:#8F7A54; margin:9px 0 0;}
+  .find-row{display:flex; justify-content:center; margin-top:36px;}
+  .btn-find{
+    width:clamp(116px,14vw,144px); aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #DFC085 0%, #C9A76A 55%, #B08D57 100%);
+    color:var(--ink); border:0; cursor:pointer; font-family:inherit;
+    font-size:clamp(19px,2vw,23px); font-weight:700; letter-spacing:.18em;
+    box-shadow:0 8px 24px rgba(0,0,0,.4), inset 0 -3px 8px rgba(0,0,0,.18);
+    transition:transform .12s, box-shadow .12s;
+  }
+  .btn-find:hover{transform:translateY(-2px); box-shadow:0 12px 28px rgba(0,0,0,.45), inset 0 -3px 8px rgba(0,0,0,.18);}
+  .btn-find:active{transform:translateY(1px);}
+  .btn-find:focus-visible{outline:2px solid var(--gold-bright); outline-offset:3px;}
+  .btn-find[disabled]{opacity:.6; cursor:progress;}
+
+  /* ── 결과 ── */
+  #result{margin-top:64px;}
+  .sec-label{font-size:12.5px; letter-spacing:.3em; color:var(--gold); font-weight:700; text-align:center; margin:0 0 16px;}
+  .pillars{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; max-width:540px; margin:0 auto 12px;}
+  .pillar{
+    background:linear-gradient(160deg,#2E1E13 0%, #271A10 100%);
+    border:1px solid var(--gold-faint); border-radius:10px; text-align:center; padding:13px 4px 11px;
+  }
+  .pillar.me{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold) inset;}
+  .pillar .ptag{font-size:11px; letter-spacing:.18em; color:var(--gold-dim); font-weight:700; margin-bottom:6px;}
+  .pillar.me .ptag{color:var(--gold-strong);}
+  .pillar .pglyph{font-family:var(--serif-han); font-size:clamp(27px,6vw,38px); font-weight:900; line-height:1.22; color:#D9B879;}
+  .pillar .pko{font-size:12.5px; color:#C4AC7F; margin-top:6px;}
+  .pillar .pwx{font-size:11px; color:var(--gold-dim);}
+  .palja-line{text-align:center; font-size:12.5px; color:#8F7A54; margin:0 0 48px;}
+
+  .r-title{
+    font-size:clamp(32px,5.5vw,52px); color:var(--cream); font-weight:700;
+    letter-spacing:.06em; margin:0 0 24px; text-align:center; line-height:1.15;
+    text-shadow:0 3px 18px rgba(242,226,187,.12);
+  }
+  .r-copy{text-align:center; font-size:clamp(15px,1.9vw,18.5px); color:#E3D0A6; margin:0; line-height:2.05;}
+  .r-soft{text-align:center; font-size:13px; color:#9A8258; margin:12px 0 0;}
+  .glyph-stage{display:grid; place-items:center; margin:20px 0 6px;}
+  .glyph-char{
+    font-family:var(--serif-han); color:#D9B879; line-height:1.1;
+    font-size:clamp(130px,22vw,205px); font-weight:900;
+    text-shadow:0 4px 26px rgba(217,184,121,.22);
+  }
+  .gods{display:flex; gap:9px; justify-content:center; flex-wrap:wrap; margin:22px 0 0;}
+  .god{
+    border:1px solid var(--gold-faint); border-radius:999px; padding:6px 17px;
+    display:flex; gap:9px; align-items:baseline; background:rgba(23,14,8,.45);
+  }
+  .god.main{border-color:var(--gold); box-shadow:0 0 0 1px var(--gold) inset;}
+  .god .g-nm{font-size:11.5px; letter-spacing:.14em; color:var(--gold-dim); font-weight:700;}
+  .god.main .g-nm{color:var(--gold-strong);}
+  .god .g-wx{font-size:14.5px; color:#E4CFA3; font-weight:700;}
+
+  /* 계산 근거 */
+  details.calc{max-width:520px; margin:38px auto 0; border-top:1px solid rgba(138,111,69,.4); padding-top:14px;}
+  details.calc summary{
+    cursor:pointer; font-size:12.5px; letter-spacing:.14em; color:var(--gold-dim);
+    list-style:none; text-align:center;
+  }
+  details.calc summary::-webkit-details-marker{display:none;}
+  details.calc summary:hover{color:var(--gold);}
+  .calc-grid{
+    display:grid; grid-template-columns:auto 1fr; gap:7px 18px; margin-top:16px;
+    font-size:12.5px; line-height:1.7;
+  }
+  .c-k{color:var(--gold-dim); letter-spacing:.06em; white-space:nowrap;}
+  .c-v{color:#C4AC7F;}
+
+  /* ── 모달·폴백 ── */
+  .overlay{position:fixed; inset:0; background:rgba(10,5,2,.74); z-index:40; display:none; align-items:center; justify-content:center; padding:20px;}
+  .overlay.on{display:flex;}
+  .modal{
+    background:linear-gradient(165deg,#2E1D10 0%, #271808 100%);
+    border:1.5px solid var(--gold-faint); border-radius:12px;
+    width:min(540px,94vw); padding:34px 30px 28px; text-align:center;
+    box-shadow:0 22px 60px rgba(0,0,0,.6);
+  }
+  .modal h3{margin:0 0 16px; font-size:clamp(21px,3vw,27px); color:var(--gold-strong); letter-spacing:.1em; font-weight:700;}
+  .modal .m-body{font-size:14.5px; color:#E0CBA0; line-height:1.95; margin:0 0 22px;}
+  .pill{
+    border:1px solid var(--gold-faint); color:#E3C994; background:transparent;
+    font-family:inherit; font-size:14px; padding:9px 22px; border-radius:999px; cursor:pointer;
+  }
+  .pill:hover{border-color:var(--gold);}
+  .pill:focus-visible{outline:2px solid var(--gold-bright); outline-offset:2px;}
+  #scr-error{min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+  #scr-error .boom{font-size:clamp(44px,7vw,68px); color:var(--gold-strong); font-weight:700; letter-spacing:.1em; margin:0 0 16px;}
+  #scr-error p{color:#D9BE8C; font-size:16px; margin:0 0 32px;}
+
+  footer{text-align:center; padding:44px 0 26px; color:#6E5836; font-size:11.5px; letter-spacing:.08em; line-height:1.9;}
+  @media (prefers-reduced-motion:reduce){ .btn-find{transition:none;} }
+</style>
+</head>
+<body>
+
+<div id="scr-main">
+  <div class="frame">
+    <p class="eyebrow">부적집</p>
+    <h1 class="title">용신찾기</h1>
+    <p class="lede">좀 더 균형잡힌 삶을 위해 사주에 부족하거나 넘치는 기운을 알아봅니다. 단, 재미로 봅시다! :)</p>
+
+    <div class="form-wrap">
+      <div class="row">
+        <p class="flabel">생년월일 (양력)</p>
+        <div class="selects">
+          <select id="selY" aria-label="태어난 해"></select>
+          <select id="selM" aria-label="태어난 달"></select>
+          <select id="selD" aria-label="태어난 날"></select>
+        </div>
+      </div>
+
+      <div class="row">
+        <p class="flabel">태어난 시각</p>
+        <div class="selects">
+          <select id="selH" aria-label="태어난 시"><option value="" selected>시</option></select>
+          <select id="selMin" aria-label="태어난 분"></select>
+        </div>
+        <p class="hint">출생 기록에 적힌 시각 그대로 넣으세요. 서머타임·표준시 변경은 알아서 되돌립니다.</p>
+      </div>
+
+      <div class="row">
+        <p class="flabel">태어난 도시</p>
+        <div class="selects"><select id="selCity" aria-label="태어난 도시" style="min-width:230px"></select></div>
+        <p class="hint">도시마다 해가 뜨는 시각이 달라, 시주(時柱)가 갈릴 수 있어요.</p>
+      </div>
+
+      <div class="find-row"><button class="btn-find" id="btnFind">찾기</button></div>
+    </div>
+
+    <section id="result" hidden>
+      <p class="sec-label">당신의 사주팔자</p>
+      <div class="pillars" id="pillars"></div>
+      <p class="palja-line" id="paljaLine"></p>
+
+      <h2 class="r-title">찾았다, 요놈!</h2>
+      <p class="r-copy" id="rCopy"></p>
+      <p class="r-soft" id="rSoft" hidden>이 사주는 중화에 가까워 해석의 여지가 있어요. 참고용으로 봐주세요.</p>
+      <div class="glyph-stage"><div class="glyph-char" id="yongGlyph"></div></div>
+      <div class="gods" id="gods"></div>
+
+      <details class="calc">
+        <summary>계산 근거 보기</summary>
+        <div class="calc-grid" id="calcRows"></div>
+      </details>
+    </section>
+  </div>
+  <footer>
+    부적집 · 명리 기반 재미 서비스 — 입력값은 저장되지 않고 브라우저 안에서만 계산됩니다<br>
+    절기는 천문 계산 기준 · 계산 정책은 용신산출 정책명세서 §3~§6
+  </footer>
+</div>
+
+<!-- 오류 폴백 (§10-E) -->
+<section id="scr-error" hidden>
+  <p class="boom">띠용!</p>
+  <p>일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.</p>
+  <button class="pill" id="btnErrHome">처음으로 돌아가기</button>
+</section>
+
+<!-- 모달: 출생 시각 모름 (§10-A) -->
+<div class="overlay" id="ovTime">
+  <div class="modal">
+    <h3>잠깐!</h3>
+    <p class="m-body">태어난 시(時)를 알아야 용신을 정확히 뽑을 수 있어요.<br>
+    시각을 모른다면 가족에게 물어보거나, 출생증명서를 확인해보세요.</p>
+    <button class="pill" data-close>시각 입력하러 가기</button>
+  </div>
+</div>
+
+<script type="module">var j=["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"],C=["갑","을","병","정","무","기","경","신","임","계"],L=["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"],k=["자","축","인","묘","진","사","오","미","신","유","술","해"],v=[0,0,1,1,2,2,3,3,4,4],x=[4,2,0,0,2,1,1,2,3,3,2,4],R=["목","화","토","금","수"],ot=["木","火","土","金","水"],Mt=[{set:[8,0,4],wx:4},{set:[2,6,10],wx:1},{set:[5,9,1],wx:3},{set:[11,3,7],wx:0}],$t=[[0,5,2],[1,6,3],[2,7,4],[3,8,0],[4,9,1]],Tt=t=>j[t.stem]+L[t.branch],st=t=>C[t.stem]+k[t.branch];function St(t){let e=String(t).match(/[(（]\s*([一-鿿])\s*([一-鿿])\s*[)）]/),o=e?[e[1],e[2]]:[...String(t).trim()].slice(0,2),n=j.indexOf(o[0])!==-1?j.indexOf(o[0]):C.indexOf(o[0]),s=L.indexOf(o[1])!==-1?L.indexOf(o[1]):k.indexOf(o[1]);if(n<0||s<0)throw new Error(`간지 해석 실패: "${t}"`);return{stem:n,branch:s}}var qt="https://apis.data.go.kr/B090041/openapi/service",Et=typeof process<"u"&&!!process.versions?.node,At=null;if(Et)try{let{readFileSync:t}=await import("node:fs");At=t(new URL("../.kasi-key",import.meta.url),"utf8").trim()||null}catch{}var Qt=Et?process.env:{},te=()=>{let t=Qt.KASI_SERVICE_KEY??At;if(!t)throw new S("NO_KEY","KASI 키 없음 — KASI_SERVICE_KEY 환경변수 또는 engine/.kasi-key 파일로 설정");return t.includes("%")?t:encodeURIComponent(t)},S=class extends Error{constructor(e,o){super(`KASI ${e}: ${o}`),this.code=String(e)}};function ee(t){let e=t.match(/<returnReasonCode>(\d+)<\/returnReasonCode>/);if(e){let s=t.match(/<returnAuthMsg>([^<]*)</)?.[1]??t.match(/<errMsg>([^<]*)</)?.[1]??"";throw new S(e[1],s)}let o=t.match(/<resultCode>(\w+)<\/resultCode>/)?.[1];if(o!=="00")throw new S(o??"??",t.match(/<resultMsg>([^<]*)</)?.[1]??"unknown");let n=[];for(let[,s]of t.matchAll(/<item>([\s\S]*?)<\/item>/g)){let r={};for(let[,a,l]of s.matchAll(/<(\w+)>([^<]*)<\/\1>/g))r[a]=l;n.push(r)}return n}async function vt(t,e,{retries:o=2}={}){let n=Object.entries(e).map(([r,a])=>`${r}=${encodeURIComponent(a)}`).join("&"),s=`${qt}/${t}?serviceKey=${te()}&${n}`;for(let r=0;;r++)try{let a=await fetch(s,{signal:AbortSignal.timeout(1e4)});if(!a.ok)throw new S(`HTTP_${a.status}`,a.statusText);return ee(await a.text())}catch(a){if(!(!(a instanceof S)||a.code.startsWith("HTTP_5"))||r>=o)throw a;await new Promise(i=>setTimeout(i,300*(r+1)))}}var yt=t=>String(t).padStart(2,"0"),rt=new Map;async function xt(t,e,o){let n=`${t}-${e}-${o}`;if(!rt.has(n)){let s=await vt("LrsrCldInfoService/getLunCalInfo",{solYear:t,solMonth:yt(e),solDay:yt(o)});if(!s.length)throw new S("EMPTY",`음양력 정보 없음: ${n} (지원 범위 밖일 수 있음)`);rt.set(n,s[0])}return rt.get(n)}async function _t(t){return vt("SpcdeInfoService/get24DivisionsInfo",{solYear:t,numOfRows:30,pageNo:1})}var ne={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11},at=new Map;async function bt(t,{retries:e=2}={}){if(at.has(t))return at.get(t);for(let o=0;;o++)try{let n=await oe(t);return at.set(t,n),n}catch(n){if(o>=e)throw n;await new Promise(s=>setTimeout(s,700*(o+1)))}}async function oe(t){let e=new URLSearchParams({format:"text",COMMAND:"'10'",OBJ_DATA:"'NO'",MAKE_EPHEM:"'YES'",EPHEM_TYPE:"'OBSERVER'",CENTER:"'500@399'",START_TIME:`'${t}-01-01 00:00'`,STOP_TIME:`'${t}-12-31 23:59'`,STEP_SIZE:"'1h'",QUANTITIES:"'31'",ANG_FORMAT:"'DEG'"}),o=await fetch(`https://ssd.jpl.nasa.gov/api/horizons.api?${e}`,{signal:AbortSignal.timeout(6e4)});if(!o.ok)throw new Error(`Horizons HTTP ${o.status}`);let n=await o.text(),s=n.split("$$SOE")[1]?.split("$$EOE")[0];if(!s)throw new Error(`Horizons 응답 파싱 실패(${t}): ${n.slice(0,200)}`);let r=[];for(let l of s.split(`
+`)){let i=l.match(/^\s*(\d{4})-(\w{3})-(\d{2}) (\d{2}):(\d{2})\s+([\d.]+)\s+(-?[\d.]+)/);i&&r.push({ut:Date.UTC(+i[1],ne[i[2]],+i[3],+i[4],+i[5]),lon:+i[6]})}if(r.length<8e3)throw new Error(`Horizons 행 수 이상(${t}): ${r.length}`);let a=0;for(let l=0;l<r.length;l++)l&&r[l].lon+a<r[l-1].u-300&&(a+=360),r[l].u=r[l].lon+a;return r}function It(t,e){let o=e<t[0].u?e+360:e;for(let n=1;n<t.length;n++)if(t[n-1].u<o&&o<=t[n].u){let s=(o-t[n-1].u)/(t[n].u-t[n-1].u);return t[n-1].ut+s*(t[n].ut-t[n-1].ut)}throw new Error(`교차 없음: ${e}°`)}var Nt=[1,2,3,4,5,6,7,8,9,10,11,12],J=[1,2,3,4,5,6,7,8,9,10,11,0],b=["소한","입춘","경칩","청명","입하","망종","소서","입추","백로","한로","입동","대설"],Ot=[285,315,345,15,45,75,105,135,165,195,225,255],se=[6.11,4.6295,6.3826,5.59,6.318,6.5,7.928,8.35,8.44,9.098,8.218,7.9],re=[5.4055,3.87,5.63,4.81,5.52,5.678,7.108,7.5,7.646,8.318,7.438,7.18],U=(t,e,o,n=0,s=0)=>Date.UTC(t,e-1,o,n,s),jt=(t,e)=>{let o=t%100,n=t>=2e3?re[e]:se[e];return Math.floor(o*.2422+n)-Math.floor(o/4)};function Ct(t){let e=(n,s)=>({name:b[s],ji:J[s],year:n,scalar:U(n,Nt[s],jt(n,s))}),o=[e(t-1,11)];for(let n=0;n<12;n++)o.push(e(t,n));return o.push(e(t+1,0)),o.sort((n,s)=>n.scalar-s.scalar),o}var kt=Math.PI/180,ae=t=>(t%360+360)%360,_=[[1900,-2.8],[1910,10.4],[1920,21.2],[1930,24],[1940,24.3],[1950,29.1],[1960,33.2],[1970,40.2],[1980,50.5],[1990,56.9],[2e3,63.8],[2010,66.1],[2020,69.4],[2030,72],[2050,80]];function ce(t){if(t<=_[0][0])return _[0][1];for(let e=1;e<_.length;e++)if(t<=_[e][0]){let[o,n]=_[e-1],[s,r]=_[e];return n+(r-n)*(t-o)/(s-o)}return _.at(-1)[1]}function ie(t){let e=(t-2451545)/36525,o=280.46646+36000.76983*e+3032e-7*e*e,n=(357.52911+35999.05029*e-1537e-7*e*e)*kt,s=(1.914602-.004817*e-14e-6*e*e)*Math.sin(n)+(.019993-101e-6*e)*Math.sin(2*n)+289e-6*Math.sin(3*n),r=(125.04-1934.136*e)*kt;return ae(o+s-.00569-.00478*Math.sin(r))}var le=t=>t/864e5+24405875e-1-9/24,ue=t=>(t-24405875e-1+9/24)*864e5;function Lt(t,e){let o=Ot[e],n=U(t,Nt[e],jt(t,e),12,0),s=ce(t)/86400,r=le(n)+s-5,a=r+10,l=i=>(ie(i)-o+540)%360-180;if(l(r)>=0||l(a)<=0)throw new Error(`절기 브래킷 실패: ${t} ${b[e]}`);for(let i=0;i<45;i++){let u=(r+a)/2;l(u)<0?r=u:a=u}return Math.round(ue((r+a)/2-s)/6e4)*6e4}var ct=t=>b.map((e,o)=>({name:e,ji:J[o],year:t,scalar:Lt(t,o)})),Dt=null,G=new Map;async function de(t){if(Dt)return null;if(!G.has(t))try{let o=(await _t(t)).filter(n=>b.includes(n.dateName)).map(n=>{let s=String(n.locdate).trim(),r=String(n.kst??"").trim().padStart(4,"0");return{name:n.dateName,ji:J[b.indexOf(n.dateName)],year:+s.slice(0,4),scalar:U(+s.slice(0,4),+s.slice(4,6),+s.slice(6,8),+r.slice(0,2),+r.slice(2,4))}});for(let n of o){let s=Lt(n.year,b.indexOf(n.name));Math.abs(n.scalar-s)>30*6e4&&(n.scalar=s,n.corrected=!0)}G.set(t,o.length===12?o:null)}catch(e){e instanceof S&&["30","31","32","NO_KEY"].includes(e.code)&&(Dt=e.message),G.set(t,null)}return G.get(t)}async function fe(t){let e=await bt(t);return b.map((o,n)=>({name:o,ji:J[n],year:t,scalar:Math.round((It(e,Ot[n])+9*36e5)/6e4)*6e4}))}async function Ut(t,{preferExact:e=!0,provider:o="kasi"}={}){if(!e)return{nodes:Ct(t),source:"suseong-approx",note:null};try{let n=new Set,s=async c=>{if(o==="astro")return n.add("astro"),ct(c);if(o==="jpl")try{let g=await fe(c);return n.add("jpl"),g}catch{return n.add("astro"),ct(c)}let d=await de(c);return d?(n.add("kasi"),d):(n.add("astro"),ct(c))};if(o==="jpl"){let c=await s(t-1),d=await s(t),g=await s(t+1),T=[c.find(A=>A.name==="대설"),...d,g.find(A=>A.name==="소한")].sort((A,M)=>A.scalar-M.scalar),E=n.has("astro")?"NASA Horizons 호출 일부 실패 → 해당 연도는 천문 계산(Meeus) 폴백":null;return{nodes:T,source:[...n].sort().join("+"),note:E}}let[r,a,l]=await Promise.all([s(t-1),s(t),s(t+1)]),i=[r.find(c=>c.name==="대설"),...a,l.find(c=>c.name==="소한")].sort((c,d)=>c.scalar-d.scalar),u=i.filter(c=>c.corrected).map(c=>`${c.year} ${c.name}`),p=u.length?`KASI 절기 데이터 이상치 감지(${u.join(", ")}) → 천문 계산값으로 보정`:null;return{nodes:i,source:[...n].sort().join("+"),note:p}}catch(n){return{nodes:Ct(t),source:"suseong-approx",note:`정밀 절기 계산 실패(${n.message}) → 수성공식 근사 대체(경계 ±1일 오차 가능, §3-3)`}}}var f=(t,e,o,n=0,s=0)=>((t*100+e)*100+o)*1e4+n*100+s,me=[{from:f(1912,1,1),offset:540,meridian:135},{from:f(1954,3,21),offset:510,meridian:127.5},{from:f(1961,8,10),offset:540,meridian:135}],he={offset:510,meridian:127.5},pe=[[f(1948,6,1),f(1948,9,13)],[f(1949,4,3),f(1949,9,11)],[f(1950,4,1),f(1950,9,10)],[f(1951,5,6),f(1951,9,9)],[f(1955,5,5),f(1955,9,9)],[f(1956,5,20),f(1956,9,30)],[f(1957,5,5),f(1957,9,22)],[f(1958,5,4),f(1958,9,21)],[f(1959,5,3),f(1959,9,20)],[f(1960,5,1),f(1960,9,18)],[f(1987,5,10,2,0),f(1987,10,11,3,0)],[f(1988,5,8,2,0),f(1988,10,9,3,0)]],w={서울:126.9784,인천:126.7052,수원:127.0286,춘천:127.7295,대전:127.3845,광주:126.8526,대구:128.6014,부산:129.0756,제주:126.5312};function Yt(t,e,o,n=0,s=0){let r=f(t,e,o,n,s),a=he;for(let i of me)r>=i.from&&(a=i);let l=pe.some(([i,u])=>r>=i&&r<u)?60:0;return{stdOffset:a.offset,meridian:a.meridian,dst:l}}var it=6e4,ge=23*60+30,we=(t,e,o)=>{let n=Math.floor((14-e)/12),s=t+4800-n,r=e+12*n-3;return o+Math.floor((153*r+2)/5)+365*s+Math.floor(s/4)-Math.floor(s/100)+Math.floor(s/400)-32045};function Me({year:t,month:e,day:o,hour:n,minute:s=0}){let r=[["year",t,1900,2050],["month",e,1,12],["day",o,1,31],["hour",n,0,23],["minute",s,0,59]];for(let[l,i,u,p]of r)if(!Number.isInteger(i)||i<u||i>p)throw new RangeError(`${l}=${i} — 정수 ${u}~${p} 범위 필요`);let a=new Date(Date.UTC(t,e-1,o));if(a.getUTCMonth()+1!==e||a.getUTCDate()!==o)throw new RangeError(`존재하지 않는 날짜: ${t}-${e}-${o}`)}var Ht=t=>{let e=new Date(t);return{y:e.getUTCFullYear(),m:e.getUTCMonth()+1,d:e.getUTCDate(),hh:e.getUTCHours(),mi:e.getUTCMinutes()}},$e=(t,e)=>{let o=new Date(Date.UTC(t.y,t.m-1,t.d+e));return{y:o.getUTCFullYear(),m:o.getUTCMonth()+1,d:o.getUTCDate()}};async function Kt(t){Me(t);let{year:e,month:o,day:n,hour:s,minute:r=0,useKasiIljin:a=!0,preferExactTerms:l=!0,termsProvider:i="kasi",longitudeDeg:u=w.서울,applyLongitude:p=!0,tzOffsetMinutes:c}=t,d=[],g={iljin:"local-jdn",terms:null},T,E=0;if(c===void 0){let h=Yt(e,o,n,s,r);T=h.stdOffset,E=h.dst,E&&d.push("서머타임 시행 기간 출생 — 표준시로 1시간 되돌려 계산(§3-6)"),T!==540&&d.push("당시 한국 표준시는 UTC+8:30 — 그 기준으로 환산(§3-6)")}else T=c;let A=Date.UTC(e,o-1,n,s,r)-(T+E)*it,M=Ht(A+540*it),z=U(M.y,M.m,M.d,M.hh,M.mi),Z=p?Math.round(u*4):T+E,y=Ht(A+Z*it),Ft=p?Z-T:0,Xt=Z-(T+E),V=y.hh*60+y.mi>=ge,Pt=y.hh===23&&!V,I=V?$e(y,1):{y:y.y,m:y.m,d:y.d},mt=((we(I.y,I.m,I.d)+49)%60+60)%60,$={stem:mt%10,branch:mt%12},ht=null;if(a)try{let h=await xt(I.y,I.m,I.d),K=St(h.lunIljin);(K.stem!==$.stem||K.branch!==$.branch)&&d.push(`일진 불일치: KASI=${h.lunIljin} vs 자체계산=${st($)} → KASI 채택`),$=K,g.iljin="kasi",ht={year:+h.lunYear,month:+h.lunMonth,day:+h.lunDay,leapMonth:h.lunLeapmonth==="윤",secha:h.lunSecha,wolgeon:h.lunWolgeon||null,iljin:h.lunIljin,solJd:+h.solJd}}catch(h){d.push(`KASI 음양력 API 실패(${h.message}) → 일진 자체계산(JDN+49) 사용`)}let{nodes:q,source:pt,note:gt}=await Ut(M.y,{preferExact:l,provider:i});g.terms=pt,gt&&d.push(gt);let zt=q.find(h=>h.name==="입춘"&&h.year===M.y),Q=z<zt.scalar?M.y-1:M.y,H={stem:((Q-4)%10+10)%10,branch:((Q-4)%12+12)%12},tt=0;for(let h of q)if(h.scalar<=z)tt=h.ji;else break;let et={stem:([2,4,6,8,0][H.stem%5]+((tt-2)%12+12)%12)%10,branch:tt},wt=Math.floor((y.hh+1)%24/2),nt={stem:([0,2,4,6,8][$.stem%5]+wt)%10,branch:wt};pt==="suseong-approx"&&Math.min(...q.map(Vt=>Math.abs(Vt.scalar-z)))<=864e5*1.5&&d.push("출생일이 절기 경계 ±1일 이내 — 근사 절기라 연주·월주가 실제와 다를 수 있음(정밀 절기 권장, §10-C)");let Zt={year:H,month:et,day:$,hour:nt};return{input:{...t},kst:M,solarTime:{...y,correctionMinutes:Xt,earlyZi:V,lateZi:Pt},sajuYear:Q,pillars:Zt,palja:{han:[H,et,$,nt].map(Tt).join(" "),ko:[H,et,$,nt].map(st).join(" ")},dayMaster:{stem:$.stem,ko:C[$.stem],branchKo:k[$.branch]},lunar:ht,meta:{sources:g,warnings:d,time:{stdOffsetMinutes:T,dstMinutes:E,longitudeDeg:p?u:null,longitudeCorrection:Ft,dayBoundary:"조자시(진태양시 23:30)"}}}}var Y=(t,e)=>(t+1)%5===e,lt=(t,e)=>(t+2)%5===e;function Rt(t,e){return t===e?"비겁":Y(t,e)?"인성":Y(e,t)?"식상":lt(e,t)?"재성":lt(t,e)?"관성":""}function Te(t){let e=v[t.day.stem],o=0,n,s=x[t.month.branch];s===e?n=3:Y(s,e)?n=2:Y(e,s)?n=-1:lt(e,s)?n=-2:n=-3,o+=n;let r=x[t.day.branch];r===e?n=2:Y(r,e)?n=1.5:n=-1,o+=n;for(let u of[t.year.stem,t.month.stem,t.hour.stem]){let p=Rt(v[u],e);o+=p==="비겁"||p==="인성"?1:-.5}let a=[t.year.branch,t.month.branch,t.day.branch,t.hour.branch];for(let u of Mt){let p=u.set.filter(c=>a.includes(c)).length;if(p>=2){let c=p===3,d=Rt(u.wx,e);o+=d==="비겁"||d==="인성"?c?1:.5:c?-1:-.5}}let l=[t.year.stem,t.month.stem,t.hour.stem];for(let u of $t)(u[0]===t.day.stem&&l.includes(u[1])||u[1]===t.day.stem&&l.includes(u[0]))&&u[2]===e&&(o+=.5);o=Math.round(o*10)/10;let i=o>=1?"strong":o>-1?"mid":"weak";return{total:o,band:i}}function Se(t){let e=0;for(let s of[t.year,t.month,t.day,t.hour]){let r=v[s.stem],a=x[s.branch];r===1&&(e+=1),r===4&&(e-=1),a===1&&(e+=1),a===4&&(e-=1)}let o=t.month.branch;[11,0,1].includes(o)?e-=2:[5,6,7].includes(o)?e+=2:[2,3,4].includes(o)?e+=.5:e-=.5,e=Math.round(e*10)/10;let n=e<=-2?1:e>=2?4:-1;return{net:e,need:n}}function ye(t,e,o){let n=v[t.day.stem],s=[];if(e.total>=1){let c=((n-2)%5+5)%5,d=(n+2)%5,g=(n+1)%5;s=[c,d,g]}else e.total<=-1&&(s=[((n-1)%5+5)%5,n]);let r;if(o.need>=0)r=o.need;else if(s.length)r=s[0];else{let c=[0,0,0,0,0];for(let d of[t.year,t.month,t.day,t.hour])c[v[d.stem]]++,c[x[d.branch]]++;r=c.indexOf(Math.min(...c))}let a=((r-1)%5+5)%5,l=(r+3)%5,i=((l-1)%5+5)%5,u=[0,1,2,3,4].find(c=>![r,a,l,i].includes(c)),p=o.need>=0&&s.includes(o.need);return{U:r,hee:a,gi:l,gu:i,han:u,both:p,abuList:s}}function Gt(t){let e=Te(t),o=Se(t);return{strength:e,climate:o,yongsin:ye(t,e,o)}}var D={B:{strong:"뭔가 부족하다기보다는 {기신}의 기운이 너무나 강한 당신!",mid:"기운이 크게 치우치지 않아 팽팽하게 균형을 이루는 당신!",weak:"기운이 여려서 든든하게 받쳐줄 힘이 필요한 당신!"},A:{strong:"{기신}의 기운을 잠재우고, 힘을 빼주는 요소가 당신의 용신이다. 엣헴!",mid:"모자란 구석을 살짝 채워주는 요소가 당신의 용신이다. 엣헴!",weak:"당신을 북돋아 일으켜주는 요소가 당신의 용신이다. 엣헴!"},C:{cold:"게다가 사주가 차게 얼어 있어, 따뜻한 기운이 이 냉기를 녹여줘요.",hot:"게다가 사주가 뜨겁게 달아 있어, 시원한 기운이 이 열기를 식혀줘요."},D:{0:"쭉쭉 뻗는 나무의 힘으로 숨통을 틔워보는거 어때?",1:"불의 힘으로 수마를 날려버리는거 어때?",2:"든든한 땅의 힘으로 중심을 잡아보는거 어때?",3:"단단한 쇠의 힘으로 딱 끊어내는거 어때?",4:"흐르는 물의 힘으로 열기를 식혀보는거 어때?"}},W=["나무","불","땅","쇠","물"];var m=t=>document.querySelector(t),Ee=t=>document.querySelectorAll(t),Ae=[["서울",w.서울],["인천",w.인천],["경기(수원)",w.수원],["강원(춘천)",w.춘천],["대전·충청",w.대전],["광주·전라",w.광주],["대구·경북",w.대구],["부산·울산·경남",w.부산],["제주",w.제주]];function O(t,e,o){for(let n of e){let s=document.createElement("option");s.value=n.v,s.textContent=n.t,String(o)===String(n.v)&&(s.selected=!0),t.appendChild(s)}}var X=m("#selY"),P=m("#selM"),F=m("#selD"),dt=m("#selH"),Jt=m("#selMin"),Wt=m("#selCity"),B=new Date().getFullYear();O(X,Array.from({length:B-1900+1},(t,e)=>({v:B-e,t:B-e+"년"})),B);O(P,Array.from({length:12},(t,e)=>({v:e+1,t:e+1+"월"})),1);O(dt,Array.from({length:24},(t,e)=>({v:e,t:String(e).padStart(2,"0")+"시"})));O(Jt,Array.from({length:60},(t,e)=>({v:e,t:String(e).padStart(2,"0")+"분"})),0);O(Wt,Ae.map(([t,e])=>({v:e,t})),w.서울);function ft(){let t=new Date(+X.value,+P.value,0).getDate(),e=Math.min(+F.value||1,t);F.innerHTML="",O(F,Array.from({length:t},(o,n)=>({v:n+1,t:n+1+"일"})),e)}X.addEventListener("change",ft);P.addEventListener("change",ft);ft();var ut=(t,e)=>t.replaceAll("{용신}",W[e.U]).replaceAll("{기신}",W[e.gi]).replaceAll("{희신}",W[e.hee]);m("#btnFind").addEventListener("click",async()=>{if(dt.value===""){m("#ovTime").classList.add("on");return}let t=m("#btnFind");t.disabled=!0;try{let e=await Kt({year:+X.value,month:+P.value,day:+F.value,hour:+dt.value,minute:+Jt.value,longitudeDeg:+Wt.value,useKasiIljin:!1,termsProvider:"astro"}),{strength:o,climate:n,yongsin:s}=Gt(e.pillars);ve(e,o,n,s),m("#result").hidden=!1,m("#result").scrollIntoView({behavior:"smooth",block:"start"})}catch(e){console.error(e),Bt()}finally{t.disabled=!1}});var N=t=>String(t).padStart(2,"0");function ve(t,e,o,n){let s=t.pillars,r=[["year","년주"],["month","월주"],["day","일주"],["hour","시주"]];m("#pillars").innerHTML=r.map(([c,d])=>{let g=s[c];return`<div class="pillar${c==="day"?" me":""}">
+      <div class="ptag">${d}</div>
+      <div class="pglyph">${j[g.stem]}<br>${L[g.branch]}</div>
+      <div class="pko">${C[g.stem]}${k[g.branch]}</div>
+      <div class="pwx">${R[v[g.stem]]}·${R[x[g.branch]]}</div>
+    </div>`}).join(""),m("#paljaLine").textContent=`${t.palja.ko} · ${t.sajuYear}년주 기준 (일간 ${t.dayMaster.ko})`;let a=[ut(D.B[e.band],n),ut(D.A[e.band],n)];o.need===1?a.push(D.C.cold):o.need===4&&a.push(D.C.hot),a.push(ut(D.D[n.U],n)),m("#rCopy").innerHTML=a.join("<br>"),m("#rSoft").hidden=e.band!=="mid",m("#yongGlyph").textContent=ot[n.U];let l=[["용신",n.U,!0],["희신",n.hee],["기신",n.gi],["한신",n.han],["구신",n.gu]];m("#gods").innerHTML=l.map(([c,d,g])=>`<div class="god${g?" main":""}"><span class="g-nm">${c}</span><span class="g-wx">${R[d]} ${ot[d]}</span></div>`).join("");let i=t.meta.time,u=t.solarTime,p=[["입력 시각",`${t.input.year}-${N(t.input.month)}-${N(t.input.day)} ${N(t.input.hour)}:${N(t.input.minute)}`],["진태양시",`${N(u.hh)}:${N(u.mi)} — 경도 보정 ${i.longitudeCorrection}분${i.dstMinutes?` + 서머타임 −${i.dstMinutes}분`:""}`],["일주 경계",u.earlyZi?"조자시(23:30 이후) — 다음 날 일주 적용":u.lateZi?"야자시(23:00~23:29) — 시지만 자시, 일주는 당일":"해당일 일주"],["서머타임",i.dstMinutes?"시행 기간 — 1시간 되돌림":"해당 없음"],["강약 / 조후",`${e.total>0?"+":""}${e.total} (${{strong:"신강쪽",mid:"중화",weak:"신약쪽"}[e.band]}) / ${o.net>0?"+":""}${o.net} (${o.need===1?"한":o.need===4?"열":"평"})`],["절기 데이터","천문 계산 (허용 오차 ±8분)"]];m("#calcRows").innerHTML=p.map(([c,d])=>`<div class="c-k">${c}</div><div class="c-v">${d}</div>`).join("")}Ee(".overlay").forEach(t=>t.addEventListener("click",e=>{(e.target===t||e.target.closest("[data-close]"))&&t.classList.remove("on")}));function Bt(){m("#scr-main").hidden=!0,m("#scr-error").hidden=!1}m("#btnErrHome").addEventListener("click",()=>{m("#scr-error").hidden=!0,m("#scr-main").hidden=!1,m("#result").hidden=!0});window.addEventListener("error",()=>{try{Bt()}catch{}});
+</script>
+</body>
+</html>

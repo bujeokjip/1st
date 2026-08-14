@@ -1,21 +1,26 @@
 /* KASI(한국천문연구원) data.go.kr OpenAPI 클라이언트 — 의존성 없음(Node 18+ fetch).
    응답이 플랫한 XML이라 정규식 파싱으로 충분하다. */
 
-import { readFileSync } from 'node:fs';
-
 const BASE = 'https://apis.data.go.kr/B090041/openapi/service';
 
-/* data.go.kr 발급 키 — 공개 저장소라 코드에 넣지 않는다.
-   우선순위: 환경변수 KASI_SERVICE_KEY → engine/.kasi-key 파일(gitignore, 한 줄).
+/* data.go.kr 발급 키 — 코드에 넣지 않는다.
+   우선순위: 환경변수 KASI_SERVICE_KEY → engine/.kasi-key 파일(한 줄).
    인코딩·디코딩 어느 형태든 허용(% 포함 여부로 판별해 정확히 1회만 인코딩).
-   키가 없으면 KASI 호출만 실패하고 엔진은 오프라인 폴백(JDN+49·천문 절기)으로 동작한다. */
+   키가 없으면 KASI 호출만 실패하고 엔진은 오프라인 폴백(JDN+49·천문 절기)으로 동작한다.
+   node:fs는 Node에서만 동적 import — 브라우저에선 아예 시도하지 않는다(요청 자체가 콘솔 오류로 남으므로).
+   어차피 브라우저는 CORS 때문에 KASI 호출이 불가하고, 엔진은 오프라인 경로로 동작한다. */
+const IS_NODE = typeof process !== 'undefined' && !!process.versions?.node;
 let fileKey = null;
-try {
-  fileKey = readFileSync(new URL('../.kasi-key', import.meta.url), 'utf8').trim() || null;
-} catch { /* 키 파일 없음 허용 */ }
+if (IS_NODE) {
+  try {
+    const { readFileSync } = await import('node:fs');
+    fileKey = readFileSync(new URL('../.kasi-key', import.meta.url), 'utf8').trim() || null;
+  } catch { /* 키 파일 없음 */ }
+}
 
+const ENV = IS_NODE ? process.env : {};
 const keyEnc = () => {
-  const k = process.env.KASI_SERVICE_KEY ?? fileKey;
+  const k = ENV.KASI_SERVICE_KEY ?? fileKey;
   if (!k) throw new KasiError('NO_KEY', 'KASI 키 없음 — KASI_SERVICE_KEY 환경변수 또는 engine/.kasi-key 파일로 설정');
   return k.includes('%') ? k : encodeURIComponent(k);
 };
