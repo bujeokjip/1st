@@ -72,26 +72,34 @@ export function climate(P) {
   return { net, need };
 }
 
-/* §6 결합 판정 — 조후 우선 원칙: 조후 뚜렷하면 억부보다 조후가 용신 */
+/* §6 결합 판정 — 억부 우선 원칙(2026-08-14 개정): 억부 후보가 있으면 억부가 용신.
+   단 조후가 지목한 오행이 억부 후보 안에 있으면 그것을 골라(both) 두 축이 함께 지지하게 한다.
+   억부 후보가 없을 때(중화)만 조후가 용신이 된다. */
 export function yongsin(P, st, cl) {
   const D = GAN_WX[P.day.stem];
   let abu = [];
   if (st.total >= 1) { const gwan = ((D - 2) % 5 + 5) % 5, jae = (D + 2) % 5, sik = (D + 1) % 5; abu = [gwan, jae, sik]; }
   else if (st.total <= -1) { const ins = ((D - 1) % 5 + 5) % 5; abu = [ins, D]; }
-  let U;
-  if (cl.need >= 0) U = cl.need;               // 조후 우선 (§6-2)
-  else if (abu.length) U = abu[0];
-  else {                                       // 중화+평 → 가장 부족한 오행 보충
+  const both = cl.need >= 0 && abu.includes(cl.need);
+
+  let U, method;
+  if (abu.length) {
+    U = both ? cl.need : abu[0];  // 억부 우선. 조후와 겹치면 그 후보를 채택 (§6-2)
+    method = 'eokbu';
+  } else if (cl.need >= 0) {
+    U = cl.need;                  // 중화 → 조후로 잡는다
+    method = 'johu';
+  } else {                        // 중화+평 → 가장 부족한 오행 보충
     const cnt = [0, 0, 0, 0, 0];
     for (const p of [P.year, P.month, P.day, P.hour]) { cnt[GAN_WX[p.stem]]++; cnt[JI_WX[p.branch]]++; }
     U = cnt.indexOf(Math.min(...cnt));
+    method = 'balance';
   }
   const hee = ((U - 1) % 5 + 5) % 5;
   const gi = (U + 3) % 5;
   const gu = ((gi - 1) % 5 + 5) % 5;
   const han = [0, 1, 2, 3, 4].find(w => ![U, hee, gi, gu].includes(w));
-  const both = cl.need >= 0 && abu.includes(cl.need);
-  return { U, hee, gi, gu, han, both, abuList: abu };
+  return { U, hee, gi, gu, han, both, method, abuList: abu };
 }
 
 /* 1단계 pillars → 2단계 전체 산출 */

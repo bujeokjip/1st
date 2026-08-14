@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { computeSajuPalja } from '../src/manse.js';
 import { computeYongsin } from '../src/yongsin.js';
 import { WX_KO } from '../src/constants.js';
+import { classify, summarize } from './lib/gap-analysis.mjs';
 
 const IN = process.argv[2];
 if (!IN) { console.error('사용: node test/report-yongsin-sazu.mjs <비교JSON> [출력경로]'); process.exit(2); }
@@ -40,6 +41,11 @@ for (const r of src.rows) {
         ? '정책 차이' : '기타';
 }
 
+/* 불일치 단계 분류 (현행 정책 = 억부 우선, 경계 23:00 기준) */
+const gap = await classify(src.rows);
+const g = summarize(gap);
+const gapByNo = new Map(gap.map(r => [r.no, r]));
+
 const N = src.rows.length;
 const cnt = f => src.rows.filter(f).length;
 const okB = src.rows.filter(r => r.B.paljaMatch);
@@ -63,7 +69,7 @@ const tr = src.rows.map(r => `      <tr>
         <td class="wx">${r.strength.api}<span class="s">${r.strength.apiScore}</span></td>
         <td class="wx"><b>${r.B.yongsin}</b></td>
         <td class="wx"><b>${r.yongsin.api}</b></td>
-        <td class="cause c-${r.B.cause === '일치' ? 'ok' : r.B.cause === '정책 차이' ? 'pol' : 'etc'}">${r.B.cause}</td>
+        <td class="cause c-${gapByNo.get(r.no).stage === '일치' ? 'ok' : gapByNo.get(r.no).stage.startsWith('0') ? 'etc' : 'pol'}">${gapByNo.get(r.no).stage}</td>
       </tr>`).join('\n');
 
 const html = `<title>용신 교차 검증 — 우리 엔진 × SAZU API</title>
@@ -138,8 +144,8 @@ const html = `<title>용신 교차 검증 — 우리 엔진 × SAZU API</title>
   <div class="tiles">
     <div class="tile"><div class="k">사주팔자</div><div class="v ok">${stat.paljaB}<span style="font-size:15px">/${N}</span></div><div class="n">경계 23:00 기준</div></div>
     <div class="tile"><div class="k">신강약</div><div class="v">${stat.onPaljaStrength}<span style="font-size:15px">/${stat.onPalja}</span></div><div class="n">팔자 일치 행 한정</div></div>
-    <div class="tile"><div class="k">용신</div><div class="v ju">${stat.onPaljaYongsin}<span style="font-size:15px">/${stat.onPalja}</span></div><div class="n">팔자 일치 행 한정</div></div>
-    <div class="tile"><div class="k">용신 불일치 사유</div><div class="v" style="font-size:19px">정책 ${stat.policy} · 기타 ${stat.etc}</div><div class="n">조후 우선 vs 억부 우선</div></div>
+    <div class="tile"><div class="k">용신</div><div class="v ju">${g.matched}<span style="font-size:15px">/${g.onPalja}</span></div><div class="n">억부 우선 정책 적용 후</div></div>
+    <div class="tile"><div class="k">불일치 단계</div><div class="v" style="font-size:18px">①${g.tally['① 억부 방향 (강약 판정)'] ?? 0} ②${g.tally['② 억부 후보 순위'] ?? 0} ③${g.tally['③ 조후 결합'] ?? 0}</div><div class="n">방향 · 후보순위 · 조후결합</div></div>
   </div>
 
   <h2>발견 1 — 시각 경계가 30분 어긋나 있었다 <span class="fixed">수정 완료</span></h2>
@@ -155,16 +161,48 @@ const html = `<title>용신 교차 검증 — 우리 엔진 × SAZU API</title>
       아래 표의 "우리" 열은 이미 이 수정이 반영된 값이다.</p>
   </div>
 
-  <h2>발견 2 — 용신 판정 정책이 서로 반대다</h2>
+  <h2>발견 2 — 용신 판정 정책이 서로 반대였다 <span class="fixed">억부 우선으로 변경</span></h2>
   <div class="find">
     <h3>억부와 조후가 다른 오행을 가리킬 때</h3>
-    <p>우리 명세서 <b>§6-2는 조후 우선</b>("극한 한열은 생존 문제")이고,
+    <p>초판 명세서 <b>§6-2는 조후 우선</b>("극한 한열은 생존 문제")이었고,
       SAZU는 <b>억부 우선</b>이다. API 응답의 <code>reasoning</code>에 그대로 적혀 있다 —
       <i>"조후용신(화)과 불일치 → 억부 우선 채택"</i>.</p>
-    <p>팔자가 일치하는 ${stat.onPalja}건 중 용신 불일치 ${stat.onPalja - stat.onPaljaYongsin}건을 뜯어보면
-      <b>${stat.policy}건이 이 정책 차이</b>로 설명되고, 나머지 <b>${stat.etc}건</b>은 배점·임계값 차이 등 별도 원인이다.</p>
-    <p>어느 쪽이 옳다기보다 <b>유파 선택의 문제</b>다. 다만 우리 결과가 시중 서비스와 다르게 나오는 이유가
-      여기 있으므로, 기획이 §6-2를 유지할지 결정할 근거가 된다.</p>
+    <p><b>조치</b>: 기획 결정으로 §6-2를 <b>억부 우선</b>으로 뒤집었다. 억부 후보가 없을 때(중화)만 조후가 용신이 된다.</p>
+    <p>다만 이 변경만으로 일치율이 크게 오르진 않았다. 변경 전 "정책 차이"로 분류됐던 ${g.prevPolicy.length}건 중
+      <b>${g.prevPolicy.filter(r => r.stage === '일치').length}건만 일치로 전환</b>됐고, 나머지는 아래 발견 3의 다른 단계에서 갈렸다.
+      용신 일치는 ${stat.onPaljaYongsin} → <b>${g.matched}</b>/${g.onPalja}건.</p>
+  </div>
+
+  <h2>발견 3 — 남은 불일치는 어느 단계에서 갈리나</h2>
+  <p class="sub">억부 우선으로 바꾼 뒤에도 남는 차이를, 파이프라인에서 <b>먼저 갈리는 단계</b> 기준으로 분류했다(팔자 일치 ${g.onPalja}건).</p>
+  <div class="table-scroll" style="margin-bottom:16px">
+    <table style="min-width:auto">
+      <thead><tr><th>단계</th><th>건수</th><th>무엇이 다른가</th></tr></thead>
+      <tbody>
+        <tr><td><b>일치</b></td><td class="num">${g.tally['일치'] ?? 0}</td><td>—</td></tr>
+        <tr><td><b>① 억부 방향</b></td><td class="num">${g.tally['① 억부 방향 (강약 판정)'] ?? 0}</td><td>생조냐 억제냐가 갈린다 — 강약 판정 차이</td></tr>
+        <tr><td><b>② 억부 후보 순위</b></td><td class="num">${g.tally['② 억부 후보 순위'] ?? 0}</td><td>방향은 같은데 고른 오행이 다르다</td></tr>
+        <tr><td><b>③ 조후 결합</b></td><td class="num">${g.tally['③ 조후 결합'] ?? 0}</td><td>억부용신은 같은데 조후 개입 방식이 다르다</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="find">
+    <h3>② 억부 후보 순위 ${g.tally['② 억부 후보 순위'] ?? 0}건 — 원인이 하나로 수렴한다</h3>
+    <p>해당 케이스가 <b>전부 같은 패턴</b>이다: 신강(억제) 방향에서
+      <b>우리는 관성(극)</b>, <b>SAZU는 식상(설기)</b>을 1순위로 고른다.</p>
+    <p>명세서 §6-1의 신강 계열 후보 배열이 <code>[관성, 재성, 식상]</code>이기 때문이다.
+      신강한 일간을 극으로 누를지 설기로 흘릴지는 <b>유파 차이</b>라 어느 쪽이 틀렸다고 할 수 없다.
+      바꾸려면 배열 순서만 <code>[식상, 재성, 관성]</code>으로 조정하면 되지만 기획 승인 사항이다.</p>
+  </div>
+
+  <div class="find">
+    <h3>① 억부 방향 ${g.tally['① 억부 방향 (강약 판정)'] ?? 0}건 — 중화 구간 처리가 통째로 다르다</h3>
+    <p>SAZU의 강약 점수는 0~100이고 <b>50점을 경계로 생조/억제가 깔끔하게 갈린다</b>:</p>
+    <p>${Object.entries(g.bins).sort().map(([k, v]) => `<code>${k}점</code> 생조 ${v.생조} · 억제 ${v.억제}`).join(' &nbsp;/&nbsp; ')}</p>
+    <p>우리는 −0.9~0.9를 <b>중화로 보고 억부 후보를 아예 비운다</b>(${g.midOurs.count}건).
+      그 ${g.midOurs.count}건 중 용신이 일치한 건 ${g.midOurs.matched}건뿐이다.
+      SAZU는 같은 행에서 모두 억부용신을 낸다 — 중화를 "판단 보류"로 볼지 "50점 기준 이분"으로 볼지의 차이다.</p>
   </div>
 
   <h2>전체 비교표</h2>
@@ -173,7 +211,7 @@ const html = `<title>용신 교차 검증 — 우리 엔진 × SAZU API</title>
     <table>
       <thead><tr>
         <th>#</th><th>생년월일시</th><th>사주팔자 (우리)</th><th>사주팔자 (SAZU)</th><th>팔자</th>
-        <th>신강 (우리)</th><th>신강 (SAZU)</th><th>용신 (우리)</th><th>용신 (SAZU)</th><th>용신 판정</th>
+        <th>신강 (우리)</th><th>신강 (SAZU)</th><th>용신 (우리)</th><th>용신 (SAZU)</th><th>불일치 단계</th>
       </tr></thead>
       <tbody>
 ${tr}
