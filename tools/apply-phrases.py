@@ -12,6 +12,9 @@
 import sys
 import re
 import zipfile
+import platform
+import subprocess
+import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from datetime import date
@@ -22,12 +25,42 @@ PKG = "{http://schemas.openxmlformats.org/package/2006/relationships}"
 
 ROOT = Path(__file__).resolve().parent.parent
 XLSX = ROOT / "docs" / "용신_결과문구_작성양식.xlsx"
+NUMBERS = ROOT / "docs" / "용신_결과문구_작성양식.numbers"
 OUT = ROOT / "web" / "src" / "phrases.js"
 
 WX_KO = ["목", "화", "토", "금", "수"]
 WX_NAME = ["나무", "불", "땅", "쇠", "물"]
 # E_용신설명 시트에 형식 안내용으로 넣어둔 예시 — 그대로면 아직 안 쓴 것으로 본다
 SAMPLE_TITLE = "밝히고 데우는 불"
+
+
+# ─────────────────────────── Numbers → xlsx 변환 (macOS)
+def numbers_to_xlsx(src):
+    """애플 Numbers 앱을 시켜 .numbers 를 .xlsx 로 내보낸다. 변환된 임시파일 경로 반환.
+    기획자가 맥에서 Numbers로 작업하므로, xlsx로 직접 내보내지 않아도 되게 자동 처리한다."""
+    if platform.system() != "Darwin":
+        raise RuntimeError(
+            ".numbers 는 macOS의 Numbers 앱에서만 변환됩니다.\n"
+            "   Numbers에서 '파일 > 다음으로 내보내기 > Excel'로 xlsx를 만든 뒤 그 파일로 다시 실행하세요.")
+    out = Path(tempfile.mkdtemp()) / (src.stem + ".xlsx")
+    script = (
+        'on run argv\n'
+        '  set src to POSIX file (item 1 of argv)\n'
+        '  set dst to POSIX file (item 2 of argv)\n'
+        '  tell application "Numbers"\n'
+        '    set d to open src\n'
+        '    delay 1\n'
+        '    export d to dst as Microsoft Excel\n'
+        '    close d saving no\n'
+        '  end tell\n'
+        'end run\n')
+    r = subprocess.run(["osascript", "-", str(src), str(out)],
+                       input=script, capture_output=True, text=True)
+    if r.returncode != 0 or not out.exists():
+        raise RuntimeError(
+            "Numbers 변환에 실패했습니다: " + (r.stderr.strip() or "알 수 없는 오류") + "\n"
+            "   Numbers 앱이 설치돼 있는지, 처음이라면 자동화 권한 허용 창에서 '확인'을 눌렀는지 확인하세요.")
+    return out
 
 
 # ─────────────────────────── xlsx 최소 리더
@@ -85,15 +118,29 @@ def js(s):
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     dry = "--dry-run" in sys.argv
-    path = Path(args[0]).expanduser() if args else XLSX
+    if args:
+        path = Path(args[0]).expanduser()
+    else:
+        # 기본: 기획자가 Numbers로 편집하므로 .numbers 를 우선, 없으면 .xlsx
+        path = NUMBERS if NUMBERS.exists() else XLSX
     if not path.exists():
-        print(f"❌ 엑셀 파일을 찾을 수 없습니다: {path}")
+        print(f"❌ 문구 파일을 찾을 수 없습니다: {path}")
         return 2
 
+    # .numbers 면 먼저 xlsx 로 변환
+    read_path = path
+    if path.suffix.lower() == ".numbers":
+        print(f"→ Numbers 파일 감지: {path.name} — xlsx로 변환 중 (Numbers 앱이 잠깐 떴다 닫힙니다) …")
+        try:
+            read_path = numbers_to_xlsx(path)
+        except RuntimeError as e:
+            print(f"❌ {e}")
+            return 2
+
     try:
-        book = read_xlsx(path)
+        book = read_xlsx(read_path)
     except Exception as e:
-        print(f"❌ 엑셀을 읽지 못했습니다: {e}")
+        print(f"❌ 파일을 읽지 못했습니다: {e}")
         return 2
 
     need = ["A_용신선언", "B_강약진단", "C_조후보정", "D_부적처방"]
@@ -178,7 +225,7 @@ def main():
     out = [
         "/* 결과 문구 블록 (명세서 §11) — 조립 순서는 피그마 기준 B→A→C→D.",
         f"   ★ 이 파일은 자동 생성됩니다. 직접 고치지 마세요.",
-        f"   원본: docs/{XLSX.name}  ·  반영 명령: 메타반영  ·  생성일: {date.today().isoformat()}",
+        f"   원본: docs/{path.name}  ·  반영 명령: 메타반영  ·  생성일: {date.today().isoformat()}",
         "   {용신}·{기신}·{희신}은 치환 변수입니다. */",
         "export const PHRASES = {",
         "  B: { // 강약 진단",
