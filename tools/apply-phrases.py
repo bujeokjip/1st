@@ -30,6 +30,10 @@ OUT = ROOT / "web" / "src" / "phrases.js"
 
 WX_KO = ["목", "화", "토", "금", "수"]
 WX_NAME = ["나무", "불", "땅", "쇠", "물"]
+# §4 판정표 5단계 — A·B 블록의 키 (engine/src/yongsin.js 의 LEVELS 와 같아야 함)
+LEVELS = ["strong", "midStrong", "neutral", "midWeak", "weak"]
+LEVEL_LABEL = {"strong": "신강", "midStrong": "중화(신강 쪽)", "neutral": "중화",
+               "midWeak": "중화(신약 쪽)", "weak": "신약"}
 # E_용신설명 시트에 형식 안내용으로 넣어둔 예시 — 그대로면 아직 안 쓴 것으로 본다
 SAMPLE_TITLE = "밝히고 데우는 불"
 
@@ -153,25 +157,46 @@ def main():
     errors, warns = [], []
     blocks = {}
 
-    # A · B — 키 strong/mid/weak
-    for name, code in (("A_용신선언", "A"), ("B_강약진단", "B")):
-        got = {}
-        for row, key, val in col_rows(book[name]):
-            if key not in ("strong", "mid", "weak"):
-                continue
-            if not val:
-                errors.append(f"{name} 시트 D{row}칸 (키: {key}) 이 비어 있습니다")
-            else:
-                got[key] = val
-        blocks[code] = got
+    # A — 용신 오행 5종 (§11-2). 행 순서 목·화·토·금·수
+    got = {}
+    rows_a = col_rows(book["A_용신선언"], end=10)
+    for i, (row, key, val) in enumerate(rows_a[:5]):
+        if not val:
+            errors.append(f"A_용신선언 시트 D{row}칸 (용신: {key}) 이 비어 있습니다")
+        else:
+            got[i] = val
+    if len(rows_a) != 5:
+        errors.append(
+            f"A_용신선언 시트는 용신 오행 5행이어야 하는데 {len(rows_a)}행입니다. "
+            "강약 기준이던 옛 양식이라면 새 양식 파일로 다시 작성해주세요")
+    blocks["A"] = got
+
+    # B — §4 판정표 강약 5단계 키
+    got, seen = {}, set()
+    for row, key, val in col_rows(book["B_강약진단"]):
+        if key not in LEVELS:
+            continue
+        seen.add(key)
+        if not val:
+            errors.append(f"B_강약진단 시트 D{row}칸 ({LEVEL_LABEL[key]}) 이 비어 있습니다")
+        else:
+            got[key] = val
+    # '행 자체가 없는' 경우만 구조 문제로 본다 (비어 있는 건 위에서 이미 잡음)
+    absent = [k for k in LEVELS if k not in seen]
+    if absent:
+        errors.append(
+            f"B_강약진단 시트에 강약 5단계 행이 없습니다 (빠진 것: {', '.join(LEVEL_LABEL[k] for k in absent)}). "
+            "옛 3단계 양식이라면 새 양식 파일로 다시 작성해주세요")
+    blocks["B"] = got
 
     # C — 키 cold/hot
+    C_LABEL = {"cold": "사주가 차가울 때", "hot": "사주가 뜨거울 때"}
     got = {}
     for row, key, val in col_rows(book["C_조후보정"]):
-        if key not in ("cold", "hot"):
+        if key not in C_LABEL:
             continue
         if not val:
-            errors.append(f"C_조후보정 시트 D{row}칸 (키: {key}) 이 비어 있습니다")
+            errors.append(f"C_조후보정 시트 D{row}칸 ({C_LABEL[key]}) 이 비어 있습니다")
         else:
             got[key] = val
     blocks["C"] = got
@@ -228,11 +253,11 @@ def main():
         f"   원본: docs/{path.name}  ·  반영 명령: 메타반영  ·  생성일: {date.today().isoformat()}",
         "   {용신}·{기신}·{희신}은 치환 변수입니다. */",
         "export const PHRASES = {",
-        "  B: { // 강약 진단",
-        block(blocks["B"], ["strong", "mid", "weak"], ""),
+        "  B: { // 강약 진단 (§4 판정표 5단계)",
+        block(blocks["B"], LEVELS, ""),
         "  },",
-        "  A: { // 용신 선언",
-        block(blocks["A"], ["strong", "mid", "weak"], ""),
+        "  A: { // 용신 선언 (용신 오행 5종)",
+        "\n".join(f"    {i}: {js(blocks['A'][i])}," for i in range(5)),
         "  },",
         "  C: { // 조후 보정 (한/열 뚜렷할 때만, 평이면 생략)",
         block(blocks["C"], ["cold", "hot"], ""),
@@ -271,7 +296,7 @@ def main():
     OUT.write_text(text, encoding="utf-8")
 
     print(f"✅ 반영 완료 → {OUT.relative_to(ROOT)}")
-    print(f"   문구 블록 13개 (A 3 · B 3 · C 2 · D 5)" + (f" + 용신 설명 {len(info)}개" if info else ""))
+    print(f"   문구 블록 17개 (A 용신5 · B 강약5 · C 조후2 · D 용신5)" + (f" + 용신 설명 {len(info)}개" if info else ""))
     if prev == text:
         print("   (내용 변화 없음)")
     for w in warns:

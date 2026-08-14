@@ -112,12 +112,13 @@ function renderResult(saju, st, cl, yg) {
   $('#paljaLine').textContent = `${saju.palja.ko} · ${saju.sajuYear}년주 기준 (일간 ${saju.dayMaster.ko})`;
 
   // 결과 문구 (§11 — 조립 순서 B→A→C→D)
-  const lines = [fill(PHRASES.B[st.band], yg), fill(PHRASES.A[st.band], yg)];
+  // 조립 순서 B(강약)→A(용신)→C(조후, 조건부)→D(용신) — §11-3
+  const lines = [fill(PHRASES.B[st.level], yg), fill(PHRASES.A[yg.U], yg)];
   if (cl.need === 1) lines.push(PHRASES.C.cold);
   else if (cl.need === 4) lines.push(PHRASES.C.hot);
   lines.push(fill(PHRASES.D[yg.U], yg));
   $('#rCopy').innerHTML = lines.join('<br>');
-  $('#rSoft').hidden = st.band !== 'mid'; // §10-D 중화 소프트 안내
+  $('#rSoft').hidden = st.level !== 'neutral'; // §10-D 중화(−0.9~0.9)에만 붙는 안내
   $('#yongGlyph').textContent = WX_HAN[yg.U];
 
   // 용신 설명 (기획 문구가 채워진 오행만 표시 — 엑셀 E_용신설명 시트)
@@ -143,7 +144,8 @@ function renderResult(saju, st, cl, yg) {
     ['진태양시', `${pad(s.hh)}:${pad(s.mi)} — 경도 보정 ${t.longitudeCorrection}분${t.dstMinutes ? ` + 서머타임 −${t.dstMinutes}분` : ''}`],
     ['일주 경계', s.earlyZi ? `자시(진태양시 ${pad(Math.floor(t.ziBoundaryMinutes / 60))}:${pad(t.ziBoundaryMinutes % 60)} 이후) — 다음 날 일주 적용` : '해당일 일주'],
     ['서머타임', t.dstMinutes ? '시행 기간 — 1시간 되돌림' : '해당 없음'],
-    ['강약 / 조후', `${st.total > 0 ? '+' : ''}${st.total} (${{ strong: '신강쪽', mid: '중화', weak: '신약쪽' }[st.band]}) / ${cl.net > 0 ? '+' : ''}${cl.net} (${cl.need === 1 ? '한' : cl.need === 4 ? '열' : '평'})`],
+    ['강약', `${st.total > 0 ? '+' : ''}${st.total} · ${st.verdict}`],
+    ['조후', `${cl.net > 0 ? '+' : ''}${cl.net} · ${cl.need === 1 ? '한(寒)' : cl.need === 4 ? '열(熱)' : '평(平)'}`],
     ['절기 데이터', '천문 계산 (허용 오차 ±8분)'],
   ];
   $('#calcRows').innerHTML = rows.map(([k, v]) => `<div class="c-k">${k}</div><div class="c-v">${v}</div>`).join('');

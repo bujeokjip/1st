@@ -36,7 +36,8 @@ t('§9 회귀 2단계: 강약 +1(strong)·조후 −2(need 화)·용신 火 both
   const r = await computeSajuPalja({ year: 1979, month: 2, day: 2, hour: 16, minute: 45, useKasiIljin: false, termsProvider: 'astro' });
   const y = computeYongsin(r.pillars);
   assert.equal(y.strength.total, 1);
-  assert.equal(y.strength.band, 'strong');
+  assert.equal(y.strength.level, 'midStrong'); // 총점 +1 → §4 5단계에서 중화(신강 쪽)
+  assert.equal(y.strength.verdict, '중화 (신강 쪽)');
   assert.equal(y.climate.net, -2);
   assert.equal(y.climate.need, 1);
   assert.deepEqual(

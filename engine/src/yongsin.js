@@ -6,6 +6,23 @@ import { GAN_WX, JI_WX, SAMHAP, GANHAP } from './constants.js';
 const gen = (a, b) => (a + 1) % 5 === b;  // a생b
 const ctrl = (a, b) => (a + 2) % 5 === b; // a극b
 
+/* §4 판정표 5단계. 문구 블록(A·B)의 키이자 화면 표시 라벨. */
+export const LEVELS = ['strong', 'midStrong', 'neutral', 'midWeak', 'weak'];
+export const LEVEL_LABEL = {
+  strong: '신강',
+  midStrong: '중화 (신강 쪽)',
+  neutral: '중화',
+  midWeak: '중화 (신약 쪽)',
+  weak: '신약',
+};
+export const LEVEL_RANGE = {
+  strong: '총점 3 이상',
+  midStrong: '총점 1 ~ 2.9',
+  neutral: '총점 −0.9 ~ 0.9',
+  midWeak: '총점 −2.9 ~ −1',
+  weak: '총점 −3 이하',
+};
+
 /* 오행 X가 일간 D에 대해 갖는 십신 대분류 (§2) */
 export function catOf(X, D) {
   if (X === D) return '비겁';
@@ -16,7 +33,13 @@ export function catOf(X, D) {
   return '';
 }
 
-/* §4 강약(억부) 점수 — band: strong(총점≥1)/mid(−0.9~0.9)/weak(≤−1) */
+/* §4 강약(억부) 점수.
+
+   판정이 두 갈래로 쓰이니 헷갈리지 말 것:
+   - level(5단계): §4 판정표 그대로. **결과 문구 분기**에만 쓴다.
+   - 억부 후보 방향(§6-1): yongsin()이 total을 직접 보고 3갈래(≥1 / −0.9~0.9 / ≤−1)로 나눈다.
+     5단계가 3방향으로 접히는 것이라 모순이 아니다 — 신강·중화(신강 쪽)은 둘 다 설기·극,
+     신약·중화(신약 쪽)은 둘 다 인성·비겁으로 같은 방향이기 때문. */
 export function strength(P) {
   const D = GAN_WX[P.day.stem];
   let total = 0, s;
@@ -46,12 +69,13 @@ export function strength(P) {
     }
   }
   total = Math.round(total * 10) / 10;
-  const band = total >= 1 ? 'strong' : total > -1 ? 'mid' : 'weak';
-  // §4 판정표 라벨. verdict3은 외부 만세력과 대조할 때 쓰는 3분류(신강/중화/신약).
-  const verdict = total >= 3 ? '신강' : total >= 1 ? '중화 (신강 쪽)'
-    : total > -1 ? '중화' : total > -3 ? '중화 (신약 쪽)' : '신약';
+  // §4 판정표 5단계 — 문구 분기 키(level)와 화면 표시 라벨(verdict)
+  const level = total >= 3 ? 'strong' : total >= 1 ? 'midStrong'
+    : total > -1 ? 'neutral' : total > -3 ? 'midWeak' : 'weak';
+  const verdict = LEVEL_LABEL[level];
+  // verdict3은 외부 만세력과 대조할 때만 쓰는 3분류(신강/중화/신약)
   const verdict3 = total >= 3 ? '신강' : total <= -3 ? '신약' : '중화';
-  return { total, band, verdict, verdict3 };
+  return { total, level, verdict, verdict3 };
 }
 
 /* §5 한난조습(조후) — need: 1(화, 한) / 4(수, 열) / −1(평) */
