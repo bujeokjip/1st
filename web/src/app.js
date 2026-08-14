@@ -5,7 +5,7 @@ import { computeSajuPalja } from '../../engine/src/manse.js';
 import { computeYongsin } from '../../engine/src/yongsin.js';
 import { LONGITUDE } from '../../engine/src/korea-time.js';
 import { GAN, JI, GAN_KO, JI_KO, GAN_WX, JI_WX, WX_HAN, WX_KO } from '../../engine/src/constants.js';
-import { PHRASES, WX_NAME } from './phrases.js';
+import { PHRASES, WX_NAME, YONGSIN_INFO } from './phrases.js';
 
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
@@ -119,6 +119,16 @@ function renderResult(saju, st, cl, yg) {
   $('#rCopy').innerHTML = lines.join('<br>');
   $('#rSoft').hidden = st.band !== 'mid'; // §10-D 중화 소프트 안내
   $('#yongGlyph').textContent = WX_HAN[yg.U];
+
+  // 용신 설명 (기획 문구가 채워진 오행만 표시 — 엑셀 E_용신설명 시트)
+  const info = YONGSIN_INFO[yg.U];
+  const box = $('#yongInfo');
+  box.hidden = !info;
+  if (info) {
+    box.innerHTML = `${info.title ? `<p class="yi-title">${info.title}</p>` : ''}
+      ${info.desc ? `<p class="yi-desc">${info.desc}</p>` : ''}
+      ${info.keywords?.length ? `<div class="yi-kw">${info.keywords.map(k => `<span>${k}</span>`).join('')}</div>` : ''}`;
+  }
 
   // 5신
   const gods = [['용신', yg.U, true], ['희신', yg.hee], ['기신', yg.gi], ['한신', yg.han], ['구신', yg.gu]];

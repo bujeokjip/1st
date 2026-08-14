@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `yongsin.html` — 엔진 원본 프로토타입(순수 HTML/CSS/JS, 의존성 없음). 계산 로직 전량이 인라인 `<script>`에 있다.
 - `부적집-ver20260727.html` — **실제 제품**(웹 게시 + QR 배포 예정). 최신 `부적집-ver*.html`이 현행본이다. 디자인은 피그마 "부적집 프로토타입"(비밀번호 보호) 기준. v1은 용신찾기 플로우만 구현(60간지찾기는 준비중 처리). 엔진 함수는 yongsin.html과 동일 로직의 인라인 복사본, 결과 문구는 §11 블록 조립(`PHRASES` 상수 — draft, 기획 감수 필요). 시각 입력은 12지시 드롭다운(시진 인덱스=시지, 자시는 선택 날짜 기준 조자시 취급), 태어난 도시는 UI만 있고 계산 미반영. 유일한 외부 의존은 구글 웹폰트(오프라인이면 시스템 명조 폴백).
 - `docs/2026-07-27.md` — 작업 인계 로그. 남은 TODO(기획 문구 13종 교체, 캘리그래피 이미지 4종, 구매안내 샘플 사진, QR, 웹 게시)는 이 파일이 기준.
+- `docs/용신_결과문구_작성양식.xlsx` + `tools/apply-phrases.py` + `.claude/skills/메타반영/` — **기획 문구 반영 파이프라인.** 기획자가 엑셀 노란 칸(13개 문구 블록 + 용신 설명 5종)을 채우면 `메타반영` 커맨드가 `web/src/phrases.js`를 자동 생성한다. **`phrases.js`는 자동 생성 파일이므로 직접 수정 금지** — 다음 반영 때 덮어써진다. 스크립트는 Python 표준 라이브러리만 사용(친구 PC에서 pip 설치 불필요).
 - `web/` — **현행 제품 화면.** `engine/` 모듈을 esbuild로 번들해 `dist/index.html` 단일 파일로 배포(`cd web && npm run build`). 브라우저는 KASI가 CORS로 막히므로 네트워크 0 모드(일진 JDN + 절기 천문 계산)로 동작. 로컬 확인은 `.claude/launch.json`의 `bujeokjip`(node web/serve.mjs, 8017) → `/web/dist/`.
 - `engine/` — Node(≥18) 재구현. 1단계 만세력 완료: 일진=KASI 음양력 API(폴백 JDN+49), 절기=KASI 특일 API(2000~2028만 제공)→천문 계산(Meeus, 분 단위)→수성공식 순. KASI `lunSecha`·`lunWolgeon`은 음력 기준이라 사주 연·월주에 쓰면 안 되고, KASI 절기 이상치(2011 입동)는 천문값으로 자동 보정. 검증: sxtwl 교차 18,963건(1회 수행, 스크립트는 초기 커밋 이력에만 있음)·NASA JPL Horizons(DE441) 대조 96건 최대 8분 통과 — 기록·재실행법은 engine/README.md. 테스트 `cd engine && npm test`.
 

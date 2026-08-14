@@ -107,6 +107,16 @@
     font-size:clamp(130px,22vw,205px); font-weight:900;
     text-shadow:0 4px 26px rgba(217,184,121,.22);
   }
+  /* 용신 설명 (기획 문구) */
+  .yong-info{max-width:560px; margin:4px auto 0; text-align:center;}
+  .yong-info .yi-title{font-size:clamp(17px,2.2vw,21px); color:var(--gold-strong); font-weight:700; letter-spacing:.06em; margin:0 0 10px;}
+  .yong-info .yi-desc{font-size:clamp(14px,1.7vw,16px); color:#D9BE8C; line-height:1.9; margin:0;}
+  .yong-info .yi-kw{display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:14px 0 0;}
+  .yong-info .yi-kw span{
+    font-size:12px; letter-spacing:.1em; color:var(--gold-dim);
+    border:1px solid var(--gold-faint); border-radius:999px; padding:3px 12px;
+  }
+
   .gods{display:flex; gap:9px; justify-content:center; flex-wrap:wrap; margin:22px 0 0;}
   .god{
     border:1px solid var(--gold-faint); border-radius:999px; padding:6px 17px;
@@ -222,6 +232,7 @@
     <p class="r-copy" id="rCopy"></p>
     <p class="r-soft" id="rSoft" hidden>이 사주는 중화에 가까워 해석의 여지가 있어요. 참고용으로 봐주세요.</p>
     <div class="glyph-stage"><div class="glyph-char" id="yongGlyph"></div></div>
+    <div class="yong-info" id="yongInfo" hidden></div>
     <div class="gods" id="gods"></div>
 
     <div class="r-actions"><button class="btn-again" data-go="find">다시하기</button></div>
