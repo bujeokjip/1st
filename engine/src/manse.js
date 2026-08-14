@@ -46,7 +46,8 @@ function toKst({ year, month, day, hour, minute = 0, tzOffsetMinutes = 540 }) {
 
 export async function computeSajuPalja(input) {
   validate(input);
-  const { useKasiIljin = true, preferExactTerms = true } = input;
+  // NASA-only 모드(KASI 무호출): { useKasiIljin: false, termsProvider: 'jpl' } — 이때 lunar 메타는 null
+  const { useKasiIljin = true, preferExactTerms = true, termsProvider = 'kasi' } = input;
   const kst = toKst(input);
   const birth = kstScalar(kst.y, kst.m, kst.d, kst.hh, kst.mi);
   const warnings = [];
@@ -77,7 +78,7 @@ export async function computeSajuPalja(input) {
   }
 
   // ── 절기 노드 (연·월 경계)
-  const { nodes, source, note } = await getTermNodes(kst.y, { preferExact: preferExactTerms });
+  const { nodes, source, note } = await getTermNodes(kst.y, { preferExact: preferExactTerms, provider: termsProvider });
   sources.terms = source;
   if (note) warnings.push(note);
 

@@ -35,6 +35,21 @@ CLI 확인: `node src/cli.js 1979-02-02 16:45` · 테스트: `npm test` (KASI AP
   실측 사례: **2011 입동** — KASI 09:26, Meeus 03:30, sxtwl 03:34 → 독립 천문 계산 둘이 합의, KASI 단독 이탈 → 보정.
 - 수성공식은 폴백 강제(`preferExactTerms: false`) 또는 천문 계산 실패 시에만 쓰인다.
 
+## NASA-only 모드 (KASI 무호출)
+
+```js
+const r = await computeSajuPalja({
+  year: 1979, month: 2, day: 2, hour: 16, minute: 45,
+  useKasiIljin: false, termsProvider: 'jpl',
+});
+```
+
+CLI: `node src/cli.js 1979-02-02 16:45 --nasa`
+
+- 절기를 JPL Horizons 태양 황경 15° 교차로 직접 산출(초 단위 정밀, 연도당 호출 1회·캐시, 응답 ~0.7MB).
+  일진은 JDN+49 산술 — 간지는 천문값이 아니라 달력 순환이라 어떤 천문 API에도 없으며, KASI 일진과 전수 일치가 검증돼 있다.
+- 이 모드에선 음력 메타(`lunar`)가 null(KASI 전용 정보). Horizons 장애 시 천문 계산(Meeus)으로 자동 폴백.
+
 ## 주의: KASI 세차·월건을 연주·월주에 쓰면 안 됨
 
 음양력 API의 `lunSecha`(세차)·`lunWolgeon`(월건)은 **음력 달력(설날·삭일) 기준**이고,
@@ -46,9 +61,10 @@ CLI 확인: `node src/cli.js 1979-02-02 16:45` · 테스트: `npm test` (KASI AP
 
 - **KASI 특일 API 전수 대조** (2000~2028, 348개 절): 천문 계산 평균 오차 5.3분, 30분 초과 1건(위 2011 입동뿐).
   수성공식은 같은 구간에서 날짜 불일치 8.9%(31/348) — 근사식 한계 확인.
-- **sxtwl(寿星천문력) 교차 검증** (1900~2028): 절기 경계 ±1일 스트레스 표본 6,321일 × 연·월·일주 = **18,963건 실질 불일치 0건**.
+- **sxtwl(寿星천문력) 교차 검증** (1900~2028, 1회 수행 후 JPL 대조로 대체): 절기 경계 ±1일 스트레스 표본 6,321일 × 연·월·일주 = **18,963건 실질 불일치 0건**.
   예외로 분류된 2건(1917 대설·1927 백로)은 절입이 자정 직후일 때 sxtwl이 월주를 하루 일찍 바꾸는 일계 반올림 규약 차이며,
   절입 시각 자체는 양쪽이 5분 내 합의(우리가 시각 기준으로 맞음). 절기 시각 1,548건: 평균 2.9분, 최대 12분.
+  검증 스크립트는 제거됨 — 필요하면 초기 커밋(adf029b)의 `engine/test/sxtwl-dump.py`·`cross-validate-sxtwl.js` 참조.
 - **NASA JPL Horizons(DE440/DE441) 대조** (1900·1917·1927·1950·1979·2000·2011·2026년 × 12절 = 96건):
   평균 2.3분 · 최대 8.0분 · 20분 초과 0건. 태양 겉보기 지심 황경(ObsEclLon, 당일 분점 기준)의 15° 교차 시각을 직접 계산해 비교.
   - 2011 입동 = JPL **03:34 KST** → KASI 09:26이 오류임을 최종 확증(sxtwl 03:34·Meeus 03:30과 합의).
@@ -56,7 +72,6 @@ CLI 확인: `node src/cli.js 1979-02-02 16:45` · 테스트: `npm test` (KASI AP
   - 회귀 연도 1979는 입춘 0.3분·소한 0.6분.
 - 재실행:
   - `node test/validate-astro.js` — 천문 계산 vs KASI 대조
-  - `pip3 install sxtwl && python3 test/sxtwl-dump.py /tmp/sxtwl-cross.json && node test/cross-validate-sxtwl.js /tmp/sxtwl-cross.json`
   - `node test/validate-jpl.js [년도들]` — JPL Horizons 대조 (기본 8개 연도, 연도당 API 1회)
 
 ## 남은 정책 결정(기획)

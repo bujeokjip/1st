@@ -4,12 +4,13 @@
    3순위: 수성(壽星)공식 근사 (명세서 §3-3, ±1일 오차 — 천문 계산 실패 시 비상용)
    절기의 정의: 태양 겉보기 황경이 15° 배수에 도달하는 순간(입춘=315°). */
 import { get24Divisions, KasiError } from './kasi-client.js';
+import { sunLongitudeYearSeries, crossingUt } from './jpl-client.js';
 
 /* §3-3 — 12절(월 경계). i=0 소한 … i=11 대설. TERM_JI[i] = 그 절이 여는 월지. */
 export const TERM_MONTH = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 export const TERM_JI = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 0];
 export const TERM_NAMES = ['소한', '입춘', '경칩', '청명', '입하', '망종', '소서', '입추', '백로', '한로', '입동', '대설'];
-const TERM_SUN_LONG = [285, 315, 345, 15, 45, 75, 105, 135, 165, 195, 225, 255];
+export const TERM_SUN_LONG = [285, 315, 345, 15, 45, 75, 105, 135, 165, 195, 225, 255];
 const C20 = [6.11, 4.6295, 6.3826, 5.59, 6.318, 6.5, 7.928, 8.35, 8.44, 9.098, 8.218, 7.9];
 const C21 = [5.4055, 3.87, 5.63, 4.81, 5.52, 5.678, 7.108, 7.5, 7.646, 8.318, 7.438, 7.18];
 
@@ -134,18 +135,46 @@ async function kasiYearTerms(year) {
   return kasiYearCache.get(year);
 }
 
+/* ── NASA JPL Horizons 절기 (provider: 'jpl') — KASI 무호출 모드용, 초 단위 정밀 ── */
+async function jplYearTerms(yr) {
+  const rows = await sunLongitudeYearSeries(yr);
+  return TERM_NAMES.map((name, i) => ({
+    name, ji: TERM_JI[i], year: yr,
+    scalar: Math.round((crossingUt(rows, TERM_SUN_LONG[i]) + 9 * 3_600_000) / 60000) * 60000,
+  }));
+}
+
 /* 전년 대설 ~ 익년 소한 노드 14개 + 출처.
-   source: 'kasi' | 'astro' | 'astro+kasi' | 'suseong-approx' */
-export async function getTermNodes(y, { preferExact = true } = {}) {
+   provider 'kasi'(기본): KASI 특일 → 천문 계산 / 'jpl': NASA Horizons → 천문 계산
+   source: 'kasi' | 'jpl' | 'astro' | 조합('astro+kasi' 등) | 'suseong-approx' */
+export async function getTermNodes(y, { preferExact = true, provider = 'kasi' } = {}) {
   if (!preferExact) return { nodes: approxNodes(y), source: 'suseong-approx', note: null };
   try {
     const used = new Set();
     const pick = async yr => {
+      if (provider === 'jpl') {
+        try {
+          const t = await jplYearTerms(yr);
+          used.add('jpl');
+          return t;
+        } catch {
+          used.add('astro');
+          return astroYearTerms(yr);
+        }
+      }
       const k = await kasiYearTerms(yr);
       if (k) { used.add('kasi'); return k; }
       used.add('astro');
       return astroYearTerms(yr);
     };
+    // Horizons는 동시 요청을 제한하므로 jpl 모드는 순차 호출
+    if (provider === 'jpl') {
+      const prev = await pick(y - 1), cur = await pick(y), next = await pick(y + 1);
+      const nodes = [prev.find(t => t.name === '대설'), ...cur, next.find(t => t.name === '소한')]
+        .sort((a, b) => a.scalar - b.scalar);
+      const note = used.has('astro') ? 'NASA Horizons 호출 일부 실패 → 해당 연도는 천문 계산(Meeus) 폴백' : null;
+      return { nodes, source: [...used].sort().join('+'), note };
+    }
     const [prev, cur, next] = await Promise.all([pick(y - 1), pick(y), pick(y + 1)]);
     const nodes = [prev.find(t => t.name === '대설'), ...cur, next.find(t => t.name === '소한')]
       .sort((a, b) => a.scalar - b.scalar);

@@ -30,6 +30,17 @@ t('절기 소스 선택: 2010=KASI · 1979=천문 계산, 절입 시각 분 단�
   assert.notEqual(ip79.scalar % 86400000, 0);
 });
 
+t('NASA-only 모드(KASI 무호출): 1979 회귀 동일 + 절기 소스 jpl', async () => {
+  const r = await computeSajuPalja({
+    year: 1979, month: 2, day: 2, hour: 16, minute: 45,
+    useKasiIljin: false, termsProvider: 'jpl',
+  });
+  assert.equal(r.palja.ko, '무오 을축 경자 갑신');
+  assert.equal(r.meta.sources.iljin, 'local-jdn');
+  assert.equal(r.meta.sources.terms, 'jpl');
+  assert.equal(r.lunar, null);
+});
+
 t('KASI 이상치 가드: 2011 입동(잘못된 09:26) → 천문값(03:3x) 보정 + 경고', async () => {
   const { nodes, note } = await getTermNodes(2011);
   const ipdong = nodes.find(n => n.name === '입동' && n.year === 2011);

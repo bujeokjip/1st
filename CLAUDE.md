@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `yongsin.html` — 엔진 원본 프로토타입(순수 HTML/CSS/JS, 의존성 없음). 계산 로직 전량이 인라인 `<script>`에 있다.
 - `부적집-ver20260727.html` — **실제 제품**(웹 게시 + QR 배포 예정). 최신 `부적집-ver*.html`이 현행본이다. 디자인은 피그마 "부적집 프로토타입"(비밀번호 보호) 기준. v1은 용신찾기 플로우만 구현(60간지찾기는 준비중 처리). 엔진 함수는 yongsin.html과 동일 로직의 인라인 복사본, 결과 문구는 §11 블록 조립(`PHRASES` 상수 — draft, 기획 감수 필요). 시각 입력은 12지시 드롭다운(시진 인덱스=시지, 자시는 선택 날짜 기준 조자시 취급), 태어난 도시는 UI만 있고 계산 미반영. 유일한 외부 의존은 구글 웹폰트(오프라인이면 시스템 명조 폴백).
 - `docs/2026-07-27.md` — 작업 인계 로그. 남은 TODO(기획 문구 13종 교체, 캘리그래피 이미지 4종, 구매안내 샘플 사진, QR, 웹 게시)는 이 파일이 기준.
-- `engine/` — Node(≥18) 재구현. 1단계 만세력 완료: 일진=KASI 음양력 API(폴백 JDN+49), 절기=KASI 특일 API(2000~2028만 제공)→천문 계산(Meeus, 분 단위)→수성공식 순. KASI `lunSecha`·`lunWolgeon`은 음력 기준이라 사주 연·월주에 쓰면 안 되고, KASI 절기 이상치(2011 입동)는 천문값으로 자동 보정. sxtwl 교차 검증 18,963건 실질 불일치 0, NASA JPL Horizons(DE441) 대조 96건 최대 8분. 상세는 engine/README.md, 테스트 `cd engine && npm test`.
+- `engine/` — Node(≥18) 재구현. 1단계 만세력 완료: 일진=KASI 음양력 API(폴백 JDN+49), 절기=KASI 특일 API(2000~2028만 제공)→천문 계산(Meeus, 분 단위)→수성공식 순. KASI `lunSecha`·`lunWolgeon`은 음력 기준이라 사주 연·월주에 쓰면 안 되고, KASI 절기 이상치(2011 입동)는 천문값으로 자동 보정. 검증: sxtwl 교차 18,963건(1회 수행, 스크립트는 초기 커밋 이력에만 있음)·NASA JPL Horizons(DE441) 대조 96건 최대 8분 통과 — 기록·재실행법은 engine/README.md. 테스트 `cd engine && npm test`.
 
 빌드·린트·테스트 명령 없음. 브라우저로 HTML을 직접 열면 실행되고, Claude Code에서는 `.claude/launch.json`의 `bujeokjip` 프리뷰 서버(python3 http.server, 포트 8017)로 확인한다. 검증은 아래 회귀 케이스 수동 확인.
 
