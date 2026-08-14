@@ -1,7 +1,8 @@
 /* 회귀 검증(명세서 §9) + 경계·폴백 케이스. 실행: npm test (KASI API 호출 발생) */
 import assert from 'node:assert/strict';
 import { computeSajuPalja } from '../src/manse.js';
-import { computeYongsin } from '../src/yongsin.js';
+import { computeYongsin, catOf } from '../src/yongsin.js';
+import { WX_KO, GAN_WX } from '../src/constants.js';
 import { getTermNodes } from '../src/solar-terms.js';
 
 const CASES = [];
@@ -42,6 +43,48 @@ t('§9 회귀 2단계: 강약 +1(strong)·조후 −2(need 화)·용신 火 both
     [y.yongsin.U, y.yongsin.both, y.yongsin.hee, y.yongsin.gi],
     [1, true, 0, 4],
   );
+});
+
+/* §6 결합 규칙 5분기 — 2026-08-14 기획 확정(SAZU 대조 검토 후 현행 유지 결정).
+   ①억부 방향 ②억부 후보 순위(신강=관>재>식) ③조후 결합(both면 조후 오행 채택) 모두 이 테스트가 지킨다. */
+t('§6-2 결합 규칙 5분기 고정 (기획 확정 정책)', async () => {
+  const at = async (date, time) => {
+    const [year, month, day] = date.split('-').map(Number);
+    const [hour, minute] = time.split(':').map(Number);
+    const r = await computeSajuPalja({ year, month, day, hour, minute, useKasiIljin: false, termsProvider: 'astro' });
+    const y = computeYongsin(r.pillars);
+    return { U: WX_KO[y.yongsin.U], abu0: WX_KO[y.yongsin.abuList[0]], both: y.yongsin.both, method: y.yongsin.method };
+  };
+
+  // ① 억부·조후가 같은 오행을 지목 → 그 오행(=억부 1순위)
+  assert.deepEqual(await at('1979-02-02', '16:45'), { U: '화', abu0: '화', both: true, method: 'eokbu' });
+
+  // ② 조후 오행이 억부 후보 안에 있되 1순위가 아님 → 조후 쪽 채택(순위 재배열). ★③ 조후 결합 정책★
+  assert.deepEqual(await at('1978-09-16', '12:20'), { U: '수', abu0: '화', both: true, method: 'eokbu' });
+
+  // ③ 조후는 뚜렷하나 억부 후보 밖 → 억부 1순위 고수(억부 우선)
+  assert.deepEqual(await at('1970-11-16', '06:26'), { U: '토', abu0: '토', both: false, method: 'eokbu' });
+
+  // ④ 중화(억부 후보 없음) + 조후 뚜렷 → 조후가 용신
+  assert.deepEqual((await at('1995-09-28', '06:48')).method, 'johu');
+  assert.equal((await at('1995-09-28', '06:48')).U, '화');
+
+  // ⑤ 중화 + 평 → 원국에서 가장 부족한 오행
+  assert.deepEqual((await at('1994-11-01', '15:32')).method, 'balance');
+  assert.equal((await at('1994-11-01', '15:32')).U, '수');
+});
+
+t('§6-1 억부 후보 순위 고정: 신강=관>재>식 · 신약=인>비 (기획 확정)', async () => {
+  const abu = async (date, time) => {
+    const [year, month, day] = date.split('-').map(Number);
+    const [hour, minute] = time.split(':').map(Number);
+    const r = await computeSajuPalja({ year, month, day, hour, minute, useKasiIljin: false, termsProvider: 'astro' });
+    const y = computeYongsin(r.pillars);
+    const D = r.pillars.day.stem;
+    return y.yongsin.abuList.map(w => catOf(w, GAN_WX[D]));
+  };
+  assert.deepEqual(await abu('1979-02-02', '16:45'), ['관성', '재성', '식상']); // 신강 계열
+  assert.deepEqual(await abu('1970-11-16', '06:26'), ['인성', '비겁']);          // 신약 계열
 });
 
 t('astro 프로바이더(네트워크 0, 브라우저 배포 모드): 회귀 동일 + terms=astro', async () => {

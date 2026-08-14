@@ -1,0 +1,172 @@
+<title>진태양시와 자시 경계</title>
+<style>
+  :root{
+    --paper:#EAE5D8; --surface:#F2EDE0; --ink:#1D1813; --ink-soft:#5C5347;
+    --line:#CBC1AA; --line-soft:#DAD2BE; --gold:#8A6F45; --ju:#A8352B; --ok:#2E6E4E;
+    --ok-bg:rgba(46,110,78,.1); --warn-bg:rgba(168,53,43,.09);
+  }
+  @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+    --paper:#241710; --surface:#2B1C12; --ink:#EFDCAE; --ink-soft:#C9A76A;
+    --line:#4A3823; --line-soft:#3A2B19; --gold:#C9A76A; --ju:#E08070; --ok:#8FBF9F;
+    --ok-bg:rgba(143,191,159,.12); --warn-bg:rgba(224,128,112,.12);}}
+  :root[data-theme="dark"]{
+    --paper:#241710; --surface:#2B1C12; --ink:#EFDCAE; --ink-soft:#C9A76A;
+    --line:#4A3823; --line-soft:#3A2B19; --gold:#C9A76A; --ju:#E08070; --ok:#8FBF9F;
+    --ok-bg:rgba(143,191,159,.12); --warn-bg:rgba(224,128,112,.12);}
+  body{margin:0; background:var(--paper); color:var(--ink);
+    font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','Segoe UI',sans-serif;
+    line-height:1.7; font-size:15.5px;}
+  .wrap{max-width:720px; margin:0 auto; padding:clamp(28px,6vw,60px) clamp(16px,4vw,30px) 70px;}
+  .eyebrow{font-size:12px; letter-spacing:.3em; color:var(--gold); font-weight:700; margin:0 0 12px;}
+  h1{font-family:'Nanum Myeongjo','AppleMyungjo','Batang',Georgia,serif;
+     font-size:clamp(26px,5vw,36px); line-height:1.3; margin:0 0 12px; font-weight:700; text-wrap:balance;}
+  .lede{color:var(--ink-soft); font-size:15px; margin:0 0 36px;}
+  h2{font-size:18px; margin:38px 0 12px; font-weight:700;}
+  h2 .n{color:var(--gold); margin-right:8px; font-family:'Nanum Myeongjo',serif;}
+  p{margin:0 0 14px;} b{font-weight:700;}
+  .sub{color:var(--ink-soft); font-size:14px;}
+
+  .three{display:grid; gap:10px; margin:0 0 8px;}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:5px; padding:16px 18px;}
+  .card.us{border-left:3px solid var(--ok);}
+  .card h3{margin:0 0 6px; font-size:15.5px; font-weight:700; display:flex; align-items:baseline; gap:9px; flex-wrap:wrap;}
+  .card h3 .tag{font-size:11px; font-weight:700; letter-spacing:.08em; border-radius:999px; padding:2px 10px;
+        color:var(--ok); background:var(--ok-bg);}
+  .card p{margin:0; font-size:14px; color:var(--ink-soft);}
+  .card .val{font-family:'Nanum Myeongjo','AppleMyungjo','Batang',Georgia,serif; font-size:17px; color:var(--ink); font-weight:700;}
+
+  .bar{position:relative; height:82px; margin:24px 0 10px; background:var(--surface);
+       border:1px solid var(--line); border-radius:5px;}
+  .bar .range{position:absolute; top:0; bottom:0; background:var(--warn-bg); border-left:1px dashed var(--ju); border-right:1px dashed var(--ju);}
+  .bar .mk{position:absolute; top:0; bottom:0; width:2px; background:var(--gold);}
+  .bar .mk.us{background:var(--ok); width:3px;}
+  .bar .lb{position:absolute; font-size:11.5px; white-space:nowrap; transform:translateX(-50%);}
+  .bar .lb.t{top:7px;} .bar .lb.b{bottom:7px;}
+  .bar .lb b{display:block; font-size:12.5px;}
+  .scale{display:flex; justify-content:space-between; font-size:11px; color:var(--ink-soft); margin:0 0 26px;}
+
+  figure{margin:18px 0 8px; background:var(--surface); border:1px solid var(--line); border-radius:5px; padding:10px 6px 4px;}
+  svg{display:block; width:100%; height:auto;}
+  .ax{font-size:10px; fill:var(--ink-soft);}
+  .grid{stroke:var(--line-soft); stroke-width:1;}
+  .zero{stroke:var(--line); stroke-width:1; stroke-dasharray:3 3;}
+  .curve{fill:none; stroke:var(--ju); stroke-width:2;}
+  figcaption{font-size:12.5px; color:var(--ink-soft); text-align:center; padding:6px 10px 8px;}
+
+  table{border-collapse:collapse; width:100%; font-size:14px; background:var(--surface);
+        border:1px solid var(--line); border-radius:5px; overflow:hidden;}
+  th{background:var(--surface); color:var(--gold); font-size:11px; letter-spacing:.1em; text-align:left;
+     padding:10px 14px; border-bottom:1px solid var(--line);}
+  td{padding:8px 14px; border-bottom:1px solid var(--line-soft);}
+  tr:last-child td{border-bottom:0;}
+  .num{font-variant-numeric:tabular-nums;}
+  .gz{font-family:'Nanum Myeongjo','AppleMyungjo','Batang',Georgia,serif; font-weight:700;}
+
+  .box{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--gold);
+       border-radius:5px; padding:16px 18px; margin:16px 0;}
+  .box h3{margin:0 0 8px; font-size:15px; font-weight:700;}
+  .box p{font-size:14px; color:var(--ink-soft); margin:0 0 8px;} .box p:last-child{margin:0;}
+  .box b{color:var(--ink);}
+  ol.opts{margin:0; padding-left:22px;}
+  ol.opts li{margin:0 0 12px; font-size:14.5px;}
+  ol.opts b{display:block;}
+  ol.opts span{color:var(--ink-soft); font-size:14px;}
+  footer{margin-top:36px; padding-top:14px; border-top:1px solid var(--line); color:var(--ink-soft); font-size:12.5px;}
+</style>
+<div class="wrap">
+  <p class="eyebrow">부적집 · 만세력 엔진</p>
+  <h1>"진태양시"가 서로 다른 걸 가리키고 있습니다</h1>
+  <p class="lede">자시가 몇 시에 시작하느냐를 두고 기획과 개발이 다른 숫자를 말하는 이유입니다.
+    결론부터 — <b>서울 기준 밤 11시 32분</b>이라는 기획 의견과 현재 엔진 동작은 <b>일치</b>합니다.
+    다만 "진태양시"라는 말이 두 가지로 쓰이고 있어, 그 갭을 정리했습니다.</p>
+
+  <h2><span class="n">一</span>시각에는 세 종류가 있습니다</h2>
+  <div class="three">
+    <div class="card">
+      <h3>① 벽시계 (표준시)</h3>
+      <p>우리가 보는 시계. 한국 전체가 <b>동경 135도</b> 하나를 기준으로 씁니다.
+        서울은 실제로 127도쯤에 있어서, 시계가 가리키는 시각과 실제 해의 위치가 어긋납니다.</p>
+    </div>
+    <div class="card us">
+      <h3>② 평균태양시 <span class="tag">우리 엔진이 쓰는 것</span></h3>
+      <p>그 도시의 경도로 보정한 시각. 서울은 <span class="val">벽시계 − 32분</span>입니다.
+        1년 내내 값이 고정입니다.</p>
+    </div>
+    <div class="card">
+      <h3>③ 진태양시 (엄밀한 의미)</h3>
+      <p>실제로 해가 남중하는 순간 기준. 평균태양시에 <b>균시차</b>를 더합니다.
+        지구 궤도가 타원이고 자전축이 기울어서 생기는 오차로, <span class="val">±16분</span> 범위에서
+        <b>날짜마다 달라집니다.</b></p>
+    </div>
+  </div>
+
+  <h2><span class="n">二</span>그래서 자시 시작이 이렇게 갈립니다</h2>
+  <p class="sub">서울 기준, 밤 시간대를 늘어놓으면:</p>
+  <div class="bar">
+    <div class="range" style="left:25.9%; right:23.0%"></div>
+    <div class="mk" style="left:50.0%"></div>
+    <div class="mk us" style="left:53.3%"></div>
+    <div class="lb t" style="left:50.0%; transform:translateX(-100%); text-align:right; padding-right:6px"><b>23:30</b>시중 관행</div>
+    <div class="lb b" style="left:53.3%; transform:translateX(0); padding-left:8px"><b>23:32</b>우리 엔진 (평균태양시)</div>
+    <div class="lb t" style="left:51.7%; top:auto; bottom:30px; color:var(--ju); transform:translateX(-50%)">← 진태양시라면 이 범위에서 매일 이동 →</div>
+  </div>
+  <div class="scale"><span>23:00</span><span>23:15</span><span>23:30</span><span>23:45</span><span>24:00</span></div>
+
+  <p><b>시중 관행 23:30</b>은 경도 보정(−32분)을 30분으로 어림한 값입니다. 우리는 어림하지 않고 정확히 −32분을
+    적용하므로 <b>23:32</b>가 됩니다. 2분 차이일 뿐 같은 뜻입니다.</p>
+  <p>반면 <b>엄밀한 진태양시</b>로 잡으면 자시 시작이 고정되지 않고
+    <b>23:15 ~ 23:46</b> 사이에서 날짜마다 움직입니다.</p>
+
+  <h2><span class="n">三</span>균시차는 이렇게 생겼습니다</h2>
+  <figure>
+    <svg viewBox="0 0 640 170" role="img" aria-label="연중 균시차 곡선">
+      <line class="zero" x1="34" y1="85.0" x2="606" y2="85.0"/>
+      <text class="ax" x="28" y="28.0" text-anchor="end">+15분</text>
+      <text class="ax" x="28" y="88.0" text-anchor="end">0</text>
+      <text class="ax" x="28" y="148.0" text-anchor="end">−15분</text>
+      <path class="curve" d="M34.0,99.7 L41.9,108.8 L49.7,117.0 L57.6,124.3 L65.4,130.5 L73.3,135.4 L81.1,138.9 L89.0,141.1 L96.9,141.9 L104.7,141.4 L112.6,139.7 L120.4,137.0 L128.3,133.2 L136.1,128.7 L144.0,123.6 L151.9,118.0 L159.7,112.1 L167.6,106.0 L175.4,100.1 L183.3,94.3 L191.1,88.9 L199.0,83.9 L206.9,79.6 L214.7,76.0 L222.6,73.3 L230.4,71.5 L238.3,70.5 L246.1,70.6 L254.0,71.5 L261.9,73.4 L269.7,76.0 L277.6,79.3 L285.4,83.1 L293.3,87.3 L301.1,91.6 L309.0,95.9 L316.9,100.0 L324.7,103.7 L332.6,106.8 L340.4,109.1 L348.3,110.7 L356.1,111.2 L364.0,110.8 L371.9,109.4 L379.7,107.0 L387.6,103.6 L395.4,99.3 L403.3,94.2 L411.1,88.5 L419.0,82.2 L426.9,75.4 L434.7,68.4 L442.6,61.3 L450.4,54.2 L458.3,47.3 L466.1,40.8 L474.0,34.9 L481.9,29.7 L489.7,25.3 L497.6,22.0 L505.4,19.9 L513.3,19.1 L521.1,19.6 L529.0,21.5 L536.9,24.9 L544.7,29.7 L552.6,35.8 L560.4,43.0 L568.3,51.3 L576.1,60.3 L584.0,69.9 L591.9,79.8 L599.7,89.7"/>
+      <text x="34.0" y="166" text-anchor="middle" class="ax">1월</text><text x="126.7" y="166" text-anchor="middle" class="ax">3월</text><text x="222.6" y="166" text-anchor="middle" class="ax">5월</text><text x="318.4" y="166" text-anchor="middle" class="ax">7월</text><text x="415.9" y="166" text-anchor="middle" class="ax">9월</text><text x="511.7" y="166" text-anchor="middle" class="ax">11월</text>
+    </svg>
+    <figcaption>균시차 — 11월엔 해가 평균보다 16분 빨리, 2월엔 14분 늦게 남중합니다.</figcaption>
+  </figure>
+
+  <table>
+    <thead><tr><th>날짜</th><th>균시차</th><th>진태양시로 잡으면 자시 시작</th></tr></thead>
+    <tbody>
+<tr><td class="num">1월 15일</td><td class="num">-9.5분</td><td class="num gz">23:41</td></tr>
+<tr><td class="num">2월 15일</td><td class="num">-14.1분</td><td class="num gz">23:46</td></tr>
+<tr><td class="num">4월 15일</td><td class="num">+0.0분</td><td class="num gz">23:31</td></tr>
+<tr><td class="num">6월 15일</td><td class="num">-0.6분</td><td class="num gz">23:32</td></tr>
+<tr><td class="num">8월 15일</td><td class="num">-4.4분</td><td class="num gz">23:36</td></tr>
+<tr><td class="num">10월 15일</td><td class="num">+14.3분</td><td class="num gz">23:17</td></tr>
+<tr><td class="num">11월 15일</td><td class="num">+15.4분</td><td class="num gz">23:16</td></tr>
+<tr><td class="num">12월 15일</td><td class="num">+4.7분</td><td class="num gz">23:27</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="n">四</span>정리하면</h2>
+  <div class="box">
+    <h3>지금 엔진은 "경도 보정만, 균시차 없음"입니다</h3>
+    <p>그래서 서울 자시 시작이 <b>연중 23:32로 고정</b>입니다. 기획에서 말한 23:32와 정확히 같습니다.</p>
+    <p>다만 코드와 문서에서 이걸 <b>"진태양시"라고 부르고 있어</b> 혼선이 생겼습니다.
+      엄밀히는 <b>평균태양시</b>가 맞는 이름입니다. 명칭을 바로잡는 편이 좋겠습니다.</p>
+  </div>
+
+  <h2><span class="n">五</span>결정이 필요한 것</h2>
+  <ol class="opts">
+    <li><b>현행 유지 — 경도 보정만 (권장)</b>
+      <span>자시 시작이 연중 23:32로 고정이라 설명하기 쉽고, 전통 명리에서 쓰는 "경도 보정" 관행과도 맞습니다.
+        시중 만세력 대부분이 이 방식입니다. 문서의 "진태양시" 표현만 "평균태양시"로 정정합니다.</span></li>
+    <li><b>균시차까지 적용 — 엄밀한 진태양시</b>
+      <span>천문학적으로 가장 정확합니다. 대신 자시 시작이 날짜마다 23:16~23:46으로 움직이고,
+        경계 근처 손님에게 설명하기 어려워집니다. 한국천문연구원 방식이 이쪽입니다.</span></li>
+    <li><b>관행값 23:30 고정</b>
+      <span>시중과 완전히 동일해집니다. 대신 태어난 도시별 차이가 사라져
+        부산·제주 손님도 서울과 같은 결과가 나옵니다.</span></li>
+  </ol>
+
+  <footer>
+    균시차 값은 Meeus 천문 알고리즘으로 계산했습니다(2025년 기준, 해마다 거의 같습니다).<br>
+    관련 문서: 용신산출 정책명세서 §3-6 · 우리엔진vsSAZU교차검증
+  </footer>
+</div>
