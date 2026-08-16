@@ -113,11 +113,12 @@ function renderResult(saju, st, cl, yg) {
 
   // 결과 문구 (§11 — 조립 순서 B→A→C→D)
   // 조립 순서 B(강약)→A(용신)→C(조후, 조건부)→D(용신) — §11-3
-  const lines = [fill(PHRASES.B[st.level], yg), fill(PHRASES.A[yg.U], yg)];
+  // 기획 문구 작성 중에는 빈 블록이 있을 수 있다 — 그 줄만 빼고 조립한다
+  const lines = [PHRASES.B[st.level], PHRASES.A[yg.U]];
   if (cl.need === 1) lines.push(PHRASES.C.cold);
   else if (cl.need === 4) lines.push(PHRASES.C.hot);
-  lines.push(fill(PHRASES.D[yg.U], yg));
-  $('#rCopy').innerHTML = lines.join('<br>');
+  lines.push(PHRASES.D[yg.U]);
+  $('#rCopy').innerHTML = lines.filter(Boolean).map(t => fill(t, yg)).join('<br>');
   $('#rSoft').hidden = st.level !== 'neutral'; // §10-D 중화(−0.9~0.9)에만 붙는 안내
   $('#yongGlyph').textContent = WX_HAN[yg.U];
 
