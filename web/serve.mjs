@@ -1,5 +1,5 @@
 /* 로컬 확인용 정적 서버 (의존성 0). 프로젝트 루트를 8017 포트로 서빙.
-   실행: node web/serve.mjs → http://127.0.0.1:8017/web/dist/ */
+   실행: npm run serve (web/) → http://127.0.0.1:8017/ */
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
@@ -20,6 +20,7 @@ const MIME = {
 createServer(async (req, res) => {
   try {
     let p = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    if (p === '/') p = '/web/dist/';
     if (p.endsWith('/')) p += 'index.html';
     const file = normalize(join(ROOT, p));
     if (!file.startsWith(normalize(ROOT))) { res.writeHead(403); res.end(); return; }
