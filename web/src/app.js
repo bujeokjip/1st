@@ -1,6 +1,6 @@
 /* 부적집 — 용신찾기 계산 화면 (engine 모듈 사용)
-   브라우저 배포 모드: 일진 JDN 산술 + 절기 천문 계산(astro) — 네트워크 호출 없음.
-   (KASI API는 브라우저 CORS 차단. 절입 오차 ±8분은 허용 정책, §3-3) */
+   브라우저 배포 모드: 일진 JDN 산술 + NASA JPL Horizons 절기 시각표(nasa) — 네트워크 호출 없음.
+   (KASI·Horizons 둘 다 브라우저 CORS 차단이라, 절기는 빌드 시점에 받아 번들에 내장한다) */
 import { computeSajuPalja } from '../../engine/src/manse.js';
 import { computeYongsin } from '../../engine/src/yongsin.js';
 import { LONGITUDE } from '../../engine/src/korea-time.js';
@@ -80,7 +80,7 @@ $('#btnFind').addEventListener('click', async () => {
       year: +selY.value, month: +selM.value, day: +selD.value,
       hour: +selH.value, minute: +selMin.value,
       longitudeDeg: +selCity.value,
-      useKasiIljin: false, termsProvider: 'astro',
+      useKasiIljin: false, termsProvider: 'nasa',
     });
     const { strength, climate, yongsin } = computeYongsin(saju.pillars);
     renderResult(saju, strength, climate, yongsin);
@@ -94,6 +94,14 @@ $('#btnFind').addEventListener('click', async () => {
 });
 
 const pad = n => String(n).padStart(2, '0');
+
+/* 계산 근거에 표시할 절기 출처 — 실제로 쓴 데이터만 적는다(engine 의 sources.terms) */
+const TERMS_LABEL = {
+  nasa: 'NASA JPL Horizons api 활용 (DE441)',
+  'astro+nasa': 'NASA JPL Horizons api 활용 (DE441) · 일부 연도는 천문 계산',
+  astro: '천문 계산 (Meeus)',
+  'suseong-approx': '수성공식 근사 (경계 ±1일 오차 가능)',
+};
 
 function renderResult(saju, st, cl, yg) {
   const P = saju.pillars;
@@ -147,7 +155,7 @@ function renderResult(saju, st, cl, yg) {
     ['서머타임', t.dstMinutes ? '시행 기간 — 1시간 되돌림' : '해당 없음'],
     ['강약', `${st.total > 0 ? '+' : ''}${st.total} · ${st.verdict}`],
     ['조후', `${cl.net > 0 ? '+' : ''}${cl.net} · ${cl.need === 1 ? '한(寒)' : cl.need === 4 ? '열(熱)' : '평(平)'}`],
-    ['절기 데이터', '천문 계산 (허용 오차 ±8분)'],
+    ['절기 데이터', TERMS_LABEL[saju.meta.sources.terms] ?? saju.meta.sources.terms],
   ];
   $('#calcRows').innerHTML = rows.map(([k, v]) => `<div class="c-k">${k}</div><div class="c-v">${v}</div>`).join('');
 }

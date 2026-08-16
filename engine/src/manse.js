@@ -66,7 +66,7 @@ const addDays = (w, n) => {
 
 export async function computeSajuPalja(input) {
   validate(input);
-  // termsProvider: 'kasi'(기본) | 'jpl'(NASA-only 모드) | 'astro'(네트워크 완전 배제 — 브라우저 배포용)
+  // termsProvider: 'kasi'(기본) | 'jpl'(NASA 실시간 호출) | 'nasa'(NASA 내장 시각표 — 브라우저 배포용) | 'astro'(순수 계산)
   const {
     year, month, day, hour, minute = 0,
     useKasiIljin = true, preferExactTerms = true, termsProvider = 'kasi',
