@@ -34,6 +34,8 @@
   @keyframes fade{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
   @media (prefers-reduced-motion:reduce){ .screen.on{animation:none;} }
   .frame{width:min(860px,92vw); margin:0 auto; padding:34px 0 20px; flex:1;}
+  /* 입력 화면은 콘텐츠를 화면 세로 중앙에 (내용이 화면보다 길면 자연스럽게 스크롤) */
+  #scr-find .frame{display:flex; flex-direction:column; justify-content:center;}
 
   .back{
     display:inline-flex; align-items:center; gap:7px; margin-bottom:22px;
