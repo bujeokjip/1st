@@ -53,12 +53,17 @@
     text-shadow:0 2px 14px rgba(231,200,135,.14);
   }
   .lede{color:#C4AC7F; text-align:center; font-size:clamp(13px,1.5vw,15.5px); margin:0 auto 46px; max-width:60ch;}
+  /* 모바일 전용 줄바꿈: 폰에선 인트로가 3줄, 태블릿 이상은 2줄 */
+  .br-m{display:none;}
+  @media (max-width:600px){ .br-m{display:inline;} }
 
   /* ── 입력 ── */
   .form-wrap{width:min(400px,100%); margin:0 auto;} /* 인트로 문구 첫 줄 시작점과 정렬 */
   .row{margin:0 0 26px;}
   .flabel{font-size:14.5px; color:#D9BE8C; letter-spacing:.12em; font-weight:700; margin:0 0 10px;}
   .selects{display:flex; gap:10px; flex-wrap:wrap;}
+  /* 음력·윤달 체크는 항상 날짜 드롭다운 아래 줄에 (음력 체크 시 윤달이 그 옆에 나타남) */
+  .selects-brk-m{display:block; flex-basis:100%; height:0; margin-top:2px;}
   select{
     appearance:none; -webkit-appearance:none;
     background:var(--bg-deep) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%23C9A76A' stroke-width='1.6' fill='none'/%3E%3C/svg%3E") no-repeat right 13px center;
@@ -250,7 +255,8 @@
   #scr-error .boom{font-size:clamp(44px,7vw,68px); color:var(--gold-strong); font-weight:700; letter-spacing:.1em; margin:0 0 16px;}
   #scr-error p{color:#D9BE8C; font-size:16px; margin:0 0 32px;}
 
-  footer{text-align:center; padding:44px 0 26px; color:#6E5836; font-size:11.5px; letter-spacing:.08em; line-height:1.9;}
+  footer{text-align:center; padding:44px 12px 26px; color:#6E5836; font-size:11.5px; letter-spacing:.08em; line-height:1.9;}
+  footer .ft-line{white-space:nowrap;} /* 문장 단위로 항상 두 줄 (환경 무관) */
 </style>
 </head>
 <body>
@@ -260,7 +266,7 @@
   <div class="frame">
     <p class="eyebrow">부적집</p>
     <h1 class="title">용신계산기</h1>
-    <p class="lede">좀 더 균형잡힌 삶을 위해 사주에 부족하거나 넘치는 기운을 알아볼까요?<br>재미있잖아요. :)</p>
+    <p class="lede">좀 더 균형잡힌 삶을 위해<br class="br-m"> 사주에 부족하거나 넘치는 기운을 알아볼까요?<br>재미있잖아요. :)</p>
 
     <div class="form-wrap">
       <div class="row">
@@ -269,10 +275,10 @@
           <select id="selY" aria-label="태어난 해"></select>
           <select id="selM" aria-label="태어난 달"></select>
           <select id="selD" aria-label="태어난 날"></select>
+          <span class="selects-brk-m" aria-hidden="true"></span>
           <label class="lunar-check"><input type="checkbox" id="chkLunar"> 음력</label>
           <label class="lunar-check" id="leapWrap" hidden><input type="checkbox" id="chkLeap"> 윤달</label>
         </div>
-        <p class="hint" id="lunarHint" hidden>음력 생일은 양력으로 바꿔서 계산해드려요. 윤달에 태어났다면 '윤달'도 체크하세요.</p>
       </div>
 
       <div class="row">
@@ -281,21 +287,19 @@
           <select id="selH" aria-label="태어난 시"><option value="" selected>시</option></select>
           <select id="selMin" aria-label="태어난 분"></select>
         </div>
-        <p class="hint">출생 기록에 적힌 시각 그대로 넣으세요. 서머타임·표준시 변경은 알아서 되돌립니다.</p>
       </div>
 
       <div class="row">
         <p class="flabel">태어난 도시</p>
         <div class="selects"><select id="selCity" aria-label="태어난 도시" style="min-width:230px"></select></div>
-        <p class="hint">도시마다 해가 뜨는 시각이 달라, 시주(時柱)가 갈릴 수 있어요.</p>
       </div>
 
       <div class="find-row"><button class="btn-find" id="btnFind">찾기</button></div>
     </div>
   </div>
   <footer>
-    부적집 · 명리 기반 재미 서비스 — 입력값은 저장되지 않고 브라우저 안에서만 계산됩니다<br>
-    절기는 천문 계산 기준 · 계산 정책은 용신산출 정책명세서 §3~§6
+    <span class="ft-line">부적집 · 명리 기반 재미 서비스</span><br>
+    <span class="ft-line">입력값은 저장되지 않고 브라우저 안에서만 계산됩니다</span>
   </footer>
 </section>
 

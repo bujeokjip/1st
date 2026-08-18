@@ -72,7 +72,6 @@ selM.addEventListener('change', refreshDays);
 const chkLunar = $('#chkLunar'), chkLeap = $('#chkLeap');
 chkLunar.addEventListener('change', () => {
   $('#leapWrap').hidden = !chkLunar.checked;
-  $('#lunarHint').hidden = !chkLunar.checked;
   if (!chkLunar.checked) chkLeap.checked = false;
   refreshDays();
 });
