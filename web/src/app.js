@@ -4,7 +4,7 @@
 import { computeSajuPalja } from '../../engine/src/manse.js';
 import { computeYongsin } from '../../engine/src/yongsin.js';
 import { LONGITUDE } from '../../engine/src/korea-time.js';
-import { GAN, JI, GAN_KO, JI_KO, GAN_WX, JI_WX, WX_HAN, WX_KO } from '../../engine/src/constants.js';
+import { GAN, JI, GAN_KO, JI_KO, WX_HAN } from '../../engine/src/constants.js';
 import { PHRASES, WX_NAME, YONGSIN_INFO, INTRO } from './phrases.js';
 import KoreanLunarCalendar from 'korean-lunar-calendar'; // 음력→양력 변환 (KASI 데이터 기반, 오프라인)
 
@@ -118,7 +118,14 @@ $('#btnFind').addEventListener('click', async () => {
     });
     const { strength, climate, yongsin } = computeYongsin(saju.pillars);
     renderResult(saju, strength, climate, yongsin, lunarInput);
+    $('#revealWrap').classList.add('hidden'); // 결과 본문은 가려둔 채 시작 → [결과보기]로 공개
     goResult();
+    // 버튼이 큰 용신 한자 정중앙에 오도록, 결과 화면이 그려진 뒤(다음 프레임) 글자 중심 위치를 재서 CSS 변수로 전달
+    requestAnimationFrame(() => {
+      const wrapTop = $('#revealWrap').getBoundingClientRect().top;
+      const g = $('#yongGlyph').getBoundingClientRect();
+      $('#revealWrap').style.setProperty('--glyph-center', `${Math.round(g.top - wrapTop + g.height / 2)}px`);
+    });
   } catch (err) {
     console.error(err);
     showError(); // §10-E 폴백
@@ -148,7 +155,6 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
       <div class="ptag">${tag}</div>
       <div class="pglyph">${GAN[p.stem]}<br>${JI[p.branch]}</div>
       <div class="pko">${GAN_KO[p.stem]}${JI_KO[p.branch]}</div>
-      <div class="pwx">${WX_KO[GAN_WX[p.stem]]}·${WX_KO[JI_WX[p.branch]]}</div>
     </div>`;
   }).join('');
   // 앞 페이지에서 입력한 값을 그대로 표시 (예: 1979년 2월 2일 오후 4시 45분 | 서울)
@@ -170,17 +176,24 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
     for (let n = 0; n < 60; n++) if (n % 10 === P.day.stem && n % 12 === P.day.branch) { g60 = n; break; }
     const season = INTRO.season?.[P.month.branch] || '';
     const animal = g60 >= 0 ? (INTRO.ganzhi?.[g60] || '') : '';
-    if (season && animal) intro = INTRO.template.replaceAll('{계절}', season).replaceAll('{색동물}', animal);
+    if (season && animal) {
+      intro = INTRO.template.replaceAll('{계절}', season).replaceAll('{색동물}', animal);
+      // 뒤에 일주 표기: " - 庚子(경자)일주"  (F 시트 B열과 같은 형식)
+      intro += ` - ${GAN[P.day.stem]}${JI[P.day.branch]}(${GAN_KO[P.day.stem]}${JI_KO[P.day.branch]})일주`;
+    }
   }
   $('#rIntro').textContent = intro;
 
-  // 결과 문구 (§11) — 조립 순서: B(강약) → A(용신) → C(조후, 조건부)
+  // 결과 문구 (§11) — 조립 순서: A(용신) → B(강약) → C(조후, 조건부)  ※ 기획 결정으로 A를 맨 앞에
   // ※ D(부적처방)는 결과 화면에서 제외 (기획 결정). PHRASES.D는 유지되나 렌더하지 않음.
   // ※ 빈 블록(작성 중)은 그 줄만 빼고 조립한다.
-  const lines = [PHRASES.B[st.level], PHRASES.A[yg.U]];
+  // A·B는 후보 배열 — 매번 랜덤으로 1개를 뽑는다 (기획 결정: 볼 때마다 다른 문장)
+  const pick = arr => Array.isArray(arr) ? (arr.length ? arr[Math.floor(Math.random() * arr.length)] : '') : arr;
+  const lines = [pick(PHRASES.A[yg.U]), pick(PHRASES.B[st.level])];
   if (cl.need === 1) lines.push(PHRASES.C.cold);
   else if (cl.need === 4) lines.push(PHRASES.C.hot);
-  $('#rCopy').innerHTML = lines.filter(Boolean).map(t => fill(t, yg)).join('<br>');
+  // 블록 사이 줄바꿈 없이 한 문단으로 이어 붙인다 (기획 결정)
+  $('#rCopy').innerHTML = lines.filter(Boolean).map(t => fill(t, yg)).join(' ');
   $('#rSoft').hidden = st.level !== 'neutral'; // §10-D 중화(−0.9~0.9)에만 붙는 안내
   $('#yongGlyph').textContent = WX_HAN[yg.U];
 
@@ -214,6 +227,13 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
   ];
   $('#calcRows').innerHTML = rows.map(([k, v]) => `<div class="c-k">${k}</div><div class="c-v">${v}</div>`).join('');
 }
+
+/* ── 공개 연출: [결과보기]를 누르면 블러가 걷히며 본문이 드러난다 ── */
+$('#btnReveal').addEventListener('click', () => {
+  $('#revealWrap').classList.remove('hidden');
+  // 드러나는 본문 상단(용신 글자)으로 시선 이동
+  setTimeout(() => $('#yongGlyph')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
+});
 
 /* ── 모달·폴백 ── */
 $$('.overlay').forEach(ov => ov.addEventListener('click', e => {

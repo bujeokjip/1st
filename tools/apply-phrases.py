@@ -191,28 +191,31 @@ def main():
     errors, warns, blanks = [], [], []
     blocks = {}
 
-    # A — 용신 오행 5종 (§11-2). 행 순서 목·화·토·금·수
-    got = {}
-    rows_a = col_rows(book["A_용신선언"], end=10)
-    for i, (row, key, val) in enumerate(rows_a[:5]):
-        got[i] = val or ""
-        if not val:
-            blanks.append(f"A_용신선언 시트 D{row}칸 (용신: {key})")
-    if len(rows_a) != 5:
-        errors.append(
-            f"A_용신선언 시트는 용신 오행 5행이어야 하는데 {len(rows_a)}행입니다. "
-            "강약 기준이던 옛 양식이라면 새 양식 파일로 다시 작성해주세요")
+    # A — 용신 오행 5종 (§11-2). 키 열(A)의 오행 글자(목/화/토/금/수)로 인식.
+    # ★ 같은 오행 행이 여러 개면 전부 후보로 모은다 → 화면에서 랜덤 1개 출력 (기획 결정)
+    got = {i: [] for i in range(5)}
+    for row, key, val in col_rows(book["A_용신선언"], end=60):
+        wx = next((i for i, k in enumerate(WX_KO) if key.startswith(k)), None)
+        if wx is None:
+            continue
+        if val:
+            got[wx].append(val)
+    for i in range(5):
+        if not got[i]:
+            blanks.append(f"A_용신선언 시트 (용신: {WX_KO[i]}) 문구가 하나도 없습니다")
     blocks["A"] = got
 
-    # B — §4 판정표 강약 5단계 키
-    got, seen = {}, set()
-    for row, key, val in col_rows(book["B_강약진단"]):
+    # B — §4 판정표 강약 5단계 키. ★ 같은 키 행이 여러 개면 전부 후보 → 랜덤 1개
+    got, seen = {k: [] for k in LEVELS}, set()
+    for row, key, val in col_rows(book["B_강약진단"], end=60):
         if key not in LEVELS:
             continue
         seen.add(key)
-        got[key] = val or ""
-        if not val:
-            blanks.append(f"B_강약진단 시트 D{row}칸 ({LEVEL_LABEL[key]})")
+        if val:
+            got[key].append(val)
+    for k in LEVELS:
+        if k in seen and not got[k]:
+            blanks.append(f"B_강약진단 시트 ({LEVEL_LABEL[k]}) 문구가 하나도 없습니다")
     # '행 자체가 없는' 경우만 구조 문제로 본다 (비어 있는 건 위에서 이미 잡음)
     absent = [k for k in LEVELS if k not in seen]
     if absent:
@@ -307,19 +310,26 @@ def main():
         body = "\n".join(f"    {k}: {js(d[k])}," for k in keys if k in d)
         return body
 
+    def block_list(d, keys):
+        """A·B처럼 키마다 문구 여러 개(배열). 화면에서 랜덤 1개 선택."""
+        return "\n".join(f"    {k}: [{', '.join(js(v) for v in d[k])}]," for k in keys)
+
+    n_a = sum(len(v) for v in blocks["A"].values())
+    n_b = sum(len(v) for v in blocks["B"].values())
     out = [
         "/* 결과 문구 블록 (명세서 §11) — 조립 순서는 피그마 기준 B→A→C→D.",
         f"   ★ 이 파일은 자동 생성됩니다. 직접 고치지 마세요.",
         f"   원본: docs/{path.name}  ·  반영 명령: 메타반영  ·  생성일: {date.today().isoformat()}",
         ("   {용신}·{기신}·{희신}은 치환 변수입니다."
+         + "\n   A·B는 키마다 문구 배열 — 화면에서 매번 랜덤으로 1개를 뽑는다(같은 키 행을 여러 개 적으면 후보가 늘어남)."
          + (f"\n   ⚠ 아직 안 채운 칸 {len(blanks)}개 — 빈 문구는 화면에서 그 줄이 통째로 빠집니다." if blanks else "")
          + " */"),
         "export const PHRASES = {",
-        "  B: { // 강약 진단 (§4 판정표 5단계)",
-        block(blocks["B"], LEVELS, ""),
+        f"  B: {{ // 강약 진단 (§4 판정표 5단계) — 후보 {n_b}개",
+        block_list(blocks["B"], LEVELS),
         "  },",
-        "  A: { // 용신 선언 (용신 오행 5종)",
-        "\n".join(f"    {i}: {js(blocks['A'][i])}," for i in range(5)),
+        f"  A: {{ // 용신 선언 (용신 오행 5종) — 후보 {n_a}개",
+        block_list(blocks["A"], list(range(5))),
         "  },",
         "  C: { // 조후 보정 (한/열 뚜렷할 때만, 평이면 생략)",
         block(blocks["C"], ["cold", "hot"], ""),
@@ -368,12 +378,13 @@ def main():
 
     OUT.write_text(text, encoding="utf-8")
 
-    total = 17  # A 용신5 · B 강약5 · C 조후2 · D 용신5
+    total = 17  # A 용신5 · B 강약5 · C 조후2 · D 용신5 (키 기준)
     filled = total - len(blanks)
     print(f"✅ 반영 완료 → {OUT.relative_to(ROOT)}")
     print(f"   문구 블록 {total}개 중 {filled}개 채워짐 (A 용신5 · B 강약5 · C 조후2 · D 용신5)"
           + (f" + 용신 설명 {len(info)}개" if info else "")
           + (" + 한 줄 소개(계절12·색동물60)" if intro else ""))
+    print(f"   랜덤 후보: A {n_a}개 · B {n_b}개  (같은 키 행을 더 적으면 늘어남)")
     if prev == text:
         print("   (내용 변화 없음)")
     if blanks:
