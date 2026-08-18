@@ -6,6 +6,7 @@ import { computeYongsin } from '../../engine/src/yongsin.js';
 import { LONGITUDE } from '../../engine/src/korea-time.js';
 import { GAN, JI, GAN_KO, JI_KO, GAN_WX, JI_WX, WX_HAN, WX_KO } from '../../engine/src/constants.js';
 import { PHRASES, WX_NAME, YONGSIN_INFO, INTRO } from './phrases.js';
+import KoreanLunarCalendar from 'korean-lunar-calendar'; // 음력→양력 변환 (KASI 데이터 기반, 오프라인)
 
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
@@ -58,14 +59,30 @@ fillSelect(selMin, Array.from({ length: 60 }, (_, i) => ({ v: i, t: String(i).pa
 fillSelect(selCity, CITIES.map(([t, v]) => ({ v, t })), LONGITUDE.서울);
 
 function refreshDays() {
-  const last = new Date(+selY.value, +selM.value, 0).getDate();
+  // 음력 달은 29~30일 — 체크 시 30일까지 열고, 실재 여부는 찾기 시점에 변환으로 검증한다
+  const last = chkLunar.checked ? 30 : new Date(+selY.value, +selM.value, 0).getDate();
   const keep = Math.min(+selD.value || 1, last);
   selD.innerHTML = '';
   fillSelect(selD, Array.from({ length: last }, (_, i) => ({ v: i + 1, t: (i + 1) + '일' })), keep);
 }
 selY.addEventListener('change', refreshDays);
 selM.addEventListener('change', refreshDays);
+
+/* ── 음력 입력 (체크 시 음력→양력 변환 후 만세력 계산) ── */
+const chkLunar = $('#chkLunar'), chkLeap = $('#chkLeap');
+chkLunar.addEventListener('change', () => {
+  $('#leapWrap').hidden = !chkLunar.checked;
+  $('#lunarHint').hidden = !chkLunar.checked;
+  if (!chkLunar.checked) chkLeap.checked = false;
+  refreshDays();
+});
 refreshDays();
+
+/* 음력→양력. 성공 시 {year, month, day}, 실패(없는 날짜·없는 윤달) 시 null */
+function lunarToSolar(y, m, d, leap) {
+  const cal = new KoreanLunarCalendar();
+  return cal.setLunarDate(y, m, d, leap) ? cal.getSolarCalendar() : null;
+}
 
 /* ── 계산 → 렌더 ── */
 const fill = (tpl, r) => tpl
@@ -73,17 +90,34 @@ const fill = (tpl, r) => tpl
 
 $('#btnFind').addEventListener('click', async () => {
   if (selH.value === '') { $('#ovTime').classList.add('on'); return; } // §10-A 시각 필수
+
+  // 음력 입력이면 양력으로 변환해 계산한다. 표시용 원본 입력은 따로 보관.
+  let y = +selY.value, m = +selM.value, d = +selD.value;
+  let lunarInput = null; // {year, month, day, leap} — 음력 체크 시에만
+  if (chkLunar.checked) {
+    const solar = lunarToSolar(y, m, d, chkLeap.checked);
+    if (!solar) {
+      $('#lunarErrBody').innerHTML = chkLeap.checked
+        ? `음력 ${y}년 ${m}월은 윤달이 없거나, 그 윤달에 없는 날짜예요.<br>날짜나 윤달 체크를 다시 확인해주세요.`
+        : `음력 ${y}년 ${m}월 ${d}일은 없는 날짜예요.<br>날짜를 다시 확인해주세요.`;
+      $('#ovLunar').classList.add('on');
+      return;
+    }
+    lunarInput = { year: y, month: m, day: d, leap: chkLeap.checked };
+    ({ year: y, month: m, day: d } = solar);
+  }
+
   const btn = $('#btnFind');
   btn.disabled = true;
   try {
     const saju = await computeSajuPalja({
-      year: +selY.value, month: +selM.value, day: +selD.value,
+      year: y, month: m, day: d,
       hour: +selH.value, minute: +selMin.value,
       longitudeDeg: +selCity.value,
       useKasiIljin: false, termsProvider: 'nasa',
     });
     const { strength, climate, yongsin } = computeYongsin(saju.pillars);
-    renderResult(saju, strength, climate, yongsin);
+    renderResult(saju, strength, climate, yongsin, lunarInput);
     goResult();
   } catch (err) {
     console.error(err);
@@ -103,7 +137,7 @@ const TERMS_LABEL = {
   'suseong-approx': '수성공식 근사 (경계 ±1일 오차 가능)',
 };
 
-function renderResult(saju, st, cl, yg) {
+function renderResult(saju, st, cl, yg, lunarInput = null) {
   const P = saju.pillars;
 
   // 사주팔자 4기둥
@@ -118,12 +152,16 @@ function renderResult(saju, st, cl, yg) {
     </div>`;
   }).join('');
   // 앞 페이지에서 입력한 값을 그대로 표시 (예: 1979년 2월 2일 오후 4시 45분 | 서울)
+  // 음력으로 입력했다면 입력한 음력 날짜에 '음력' 표기를 붙인다 (계산은 변환된 양력 기준)
   const inp = saju.input;
   const ampm = inp.hour < 12 ? '오전' : '오후';
   const h12 = inp.hour % 12 === 0 ? 12 : inp.hour % 12;
   const timeStr = `${ampm} ${h12}시${inp.minute ? ` ${inp.minute}분` : ''}`;
   const cityName = selCity.selectedOptions[0]?.textContent ?? '';
-  $('#paljaLine').textContent = `${inp.year}년 ${inp.month}월 ${inp.day}일 ${timeStr} | ${cityName}`;
+  const dateStr = lunarInput
+    ? `음력 ${lunarInput.year}년 ${lunarInput.leap ? '윤' : ''}${lunarInput.month}월 ${lunarInput.day}일`
+    : `${inp.year}년 ${inp.month}월 ${inp.day}일`;
+  $('#paljaLine').textContent = `${dateStr} ${timeStr} | ${cityName}`;
 
   // 결과 문구 (§11) — 조립 순서: 한줄소개(F) → B(강약) → A(용신) → C(조후, 조건부)
   // ※ D(부적처방)는 결과 화면에서 제외 (기획 결정). PHRASES.D는 유지되나 렌더하지 않음.
@@ -162,6 +200,7 @@ function renderResult(saju, st, cl, yg) {
   // 계산 근거 (§3-6 보정 내역 — 값이 어떻게 나왔는지 확인 가능하게)
   const t = saju.meta.time, s = saju.solarTime;
   const rows = [
+    ...(lunarInput ? [['음력 입력', `음력 ${lunarInput.year}-${pad(lunarInput.month)}-${pad(lunarInput.day)}${lunarInput.leap ? ' (윤달)' : ''} → 양력 ${saju.input.year}-${pad(saju.input.month)}-${pad(saju.input.day)} 변환 (KASI 음양력 데이터)`]] : []),
     ['입력 시각', `${saju.input.year}-${pad(saju.input.month)}-${pad(saju.input.day)} ${pad(saju.input.hour)}:${pad(saju.input.minute)}`],
     ['진태양시', `${pad(s.hh)}:${pad(s.mi)} — 경도 보정 ${t.longitudeCorrection}분${t.dstMinutes ? ` + 서머타임 −${t.dstMinutes}분` : ''}`],
     ['일주 경계', s.earlyZi ? `자시(진태양시 ${pad(Math.floor(t.ziBoundaryMinutes / 60))}:${pad(t.ziBoundaryMinutes % 60)} 이후) — 다음 날 일주 적용` : '해당일 일주'],

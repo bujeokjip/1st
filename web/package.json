@@ -9,5 +9,8 @@
   },
   "devDependencies": {
     "esbuild": "^0.24.0"
+  },
+  "dependencies": {
+    "korean-lunar-calendar": "^0.4.0"
   }
 }

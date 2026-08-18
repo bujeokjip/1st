@@ -65,6 +65,21 @@
   }
   select:focus-visible{outline:2px solid var(--gold); outline-offset:1px;}
   .hint{font-size:12.5px; color:#8F7A54; margin:9px 0 0;}
+  .lunar-check{
+    display:flex; align-items:center; gap:8px; font-size:14.5px; color:#E4CFA3;
+    cursor:pointer; user-select:none; padding:0 4px;
+  }
+  /* 체크박스는 드롭다운과 같은 색 조합(bg-deep 바탕 + gold-faint 테두리)으로 */
+  .lunar-check input{
+    appearance:none; -webkit-appearance:none; margin:0;
+    width:20px; height:20px; border-radius:6px; cursor:pointer;
+    background:var(--bg-deep); border:1px solid var(--gold-faint);
+  }
+  .lunar-check input:checked{
+    border-color:var(--gold);
+    background:var(--bg-deep) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10'%3E%3Cpath d='M1 5l3.6 3.5L11 1' stroke='%23C9A76A' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center;
+  }
+  .lunar-check input:focus-visible{outline:2px solid var(--gold); outline-offset:1px;}
   .find-row{display:flex; justify-content:center; margin-top:36px;}
   .btn-find{
     width:clamp(116px,14vw,144px); aspect-ratio:1; border-radius:50%;
@@ -184,16 +199,19 @@
   <div class="frame">
     <p class="eyebrow">부적집</p>
     <h1 class="title">용신찾기</h1>
-    <p class="lede">좀 더 균형잡힌 삶을 위해 사주에 부족하거나 넘치는 기운을 알아봅니다. 단, 재미로 봅시다! :)</p>
+    <p class="lede">좀 더 균형잡힌 삶을 위해 사주에 부족하거나 넘치는 기운을 알아볼까요?<br>재미있잖아요. :)</p>
 
     <div class="form-wrap">
       <div class="row">
-        <p class="flabel">생년월일 (양력)</p>
+        <p class="flabel">생년월일</p>
         <div class="selects">
           <select id="selY" aria-label="태어난 해"></select>
           <select id="selM" aria-label="태어난 달"></select>
           <select id="selD" aria-label="태어난 날"></select>
+          <label class="lunar-check"><input type="checkbox" id="chkLunar"> 음력</label>
+          <label class="lunar-check" id="leapWrap" hidden><input type="checkbox" id="chkLeap"> 윤달</label>
         </div>
+        <p class="hint" id="lunarHint" hidden>음력 생일은 양력으로 바꿔서 계산해드려요. 윤달에 태어났다면 '윤달'도 체크하세요.</p>
       </div>
 
       <div class="row">
@@ -260,6 +278,15 @@
     <p class="m-body">태어난 시(時)를 알아야 용신을 정확히 뽑을 수 있어요.<br>
     시각을 모른다면 가족에게 물어보거나, 출생증명서를 확인해보세요.</p>
     <button class="pill" data-close>시각 입력하러 가기</button>
+  </div>
+</div>
+
+<!-- 모달: 음력 날짜 오류 -->
+<div class="overlay" id="ovLunar">
+  <div class="modal">
+    <h3>잠깐!</h3>
+    <p class="m-body" id="lunarErrBody">음력에 없는 날짜예요.<br>날짜를 다시 확인해주세요.</p>
+    <button class="pill" data-close>다시 선택하기</button>
   </div>
 </div>
 
