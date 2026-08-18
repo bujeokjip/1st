@@ -12,7 +12,8 @@
    - 절기 비교(연주·월주)는 보정 없는 실제 순간으로 한다. 절입은 물리적 순간이라
      출생지 경도와 무관하기 때문이다.
    - 시주·일주 경계는 진태양시(경도 보정 적용)로 한다. 시진은 그 땅의 해 위치가 기준이다.
-   - 일주 경계는 조자시설: 진태양시 23:30부터 다음 날 일주(기획 확정 기준, §3-6). */
+   - 일주 경계는 조자시설: 진태양시 23:00부터 다음 날 일주(기획 확정 기준, §3-6).
+     23:30이 아닌 이유는 아래 ZI_BOUNDARY 주석 참조. */
 import { GAN_KO, JI_KO, ganjiHan, ganjiKo, parseGanji } from './constants.js';
 import { getLunCalInfo } from './kasi-client.js';
 import { getTermNodes, kstScalar } from './solar-terms.js';
@@ -66,7 +67,7 @@ const addDays = (w, n) => {
 
 export async function computeSajuPalja(input) {
   validate(input);
-  // termsProvider: 'kasi'(기본) | 'jpl'(NASA-only 모드) | 'astro'(네트워크 완전 배제 — 브라우저 배포용)
+  // termsProvider: 'kasi'(기본) | 'jpl'(NASA 실시간 호출) | 'nasa'(NASA 내장 시각표 — 브라우저 배포용) | 'astro'(순수 계산)
   const {
     year, month, day, hour, minute = 0,
     useKasiIljin = true, preferExactTerms = true, termsProvider = 'kasi',
@@ -101,7 +102,7 @@ export async function computeSajuPalja(input) {
   const longitudeCorrection = applyLongitude ? lonOffset - stdOffset : 0; // 표준자오선 대비 경도 보정만
   const totalCorrection = lonOffset - (stdOffset + dst);                  // 기록 시각 대비 총 이동(서머타임 포함)
 
-  // ── 일주 (§3-1) — 조자시설: 진태양시 23:30(자시 시작)부터 다음 날 일주 (§3-6)
+  // ── 일주 (§3-1) — 조자시설: 진태양시 23:00(자시 시작, ZI_BOUNDARY)부터 다음 날 일주 (§3-6)
   const solarMinutes = solar.hh * 60 + solar.mi;
   const early = solarMinutes >= ziBoundaryMinutes;
   const dayDate = early ? addDays(solar, 1) : { y: solar.y, m: solar.m, d: solar.d };

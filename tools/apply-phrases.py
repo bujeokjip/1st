@@ -7,7 +7,8 @@
 외부 패키지를 쓰지 않는다(표준 라이브러리 zipfile + ElementTree로 xlsx를 직접 읽음).
 친구 PC에서 pip install 없이 바로 돌아가야 하기 때문.
 
-검증을 통과하지 못하면 아무것도 쓰지 않고 무엇을 채워야 하는지 알려준다.
+안 채운 칸이 있어도 그 칸만 빈 문구로 두고 반영한다 — 작성 중간에도 화면을 확인할 수 있어야 하므로.
+어느 칸이 비었는지는 반영 후 알려준다. 양식 자체가 다른 경우(시트·행 누락)만 중단한다.
 """
 import sys
 import re
@@ -15,6 +16,7 @@ import zipfile
 import platform
 import subprocess
 import tempfile
+import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from datetime import date
@@ -46,25 +48,56 @@ def numbers_to_xlsx(src):
         raise RuntimeError(
             ".numbers 는 macOS의 Numbers 앱에서만 변환됩니다.\n"
             "   Numbers에서 '파일 > 다음으로 내보내기 > Excel'로 xlsx를 만든 뒤 그 파일로 다시 실행하세요.")
-    out = Path(tempfile.mkdtemp()) / (src.stem + ".xlsx")
+    # Numbers는 실행 직후나 연속 호출 때 open이 missing value를 돌려주는 일이 있다(-1700).
+    # 스크립트 안에서 한 번, 바깥에서 한 번 재시도한다.
+    # 기획자가 표를 열어둔 채 실행하는 경우가 많으므로, 우리가 연 게 아니면 닫지 않는다.
     script = (
         'on run argv\n'
-        '  set src to POSIX file (item 1 of argv)\n'
+        '  set srcPath to item 1 of argv\n'
+        '  set src to POSIX file srcPath\n'
         '  set dst to POSIX file (item 2 of argv)\n'
         '  tell application "Numbers"\n'
-        '    set d to open src\n'
-        '    delay 1\n'
+        '    launch\n'
+        '    set wasOpen to false\n'
+        '    try\n'
+        '      repeat with dd in documents\n'
+        '        try\n'
+        '          set p to POSIX path of ((file of dd) as alias)\n'
+        '          if p ends with "/" then set p to text 1 thru -2 of p\n'
+        '          if p is srcPath then set wasOpen to true\n'
+        '        end try\n'
+        '      end repeat\n'
+        '    end try\n'
+        '    set d to missing value\n'
+        '    repeat 20 times\n'
+        '      try\n'
+        '        set d to open src\n'
+        '      end try\n'
+        '      if d is not missing value then exit repeat\n'
+        '      delay 0.5\n'
+        '    end repeat\n'
+        '    if d is missing value then error "Numbers가 파일을 열지 못했습니다"\n'
         '    export d to dst as Microsoft Excel\n'
-        '    close d saving no\n'
+        '    if not wasOpen then close d saving no\n'
         '  end tell\n'
         'end run\n')
-    r = subprocess.run(["osascript", "-", str(src), str(out)],
-                       input=script, capture_output=True, text=True)
-    if r.returncode != 0 or not out.exists():
-        raise RuntimeError(
-            "Numbers 변환에 실패했습니다: " + (r.stderr.strip() or "알 수 없는 오류") + "\n"
-            "   Numbers 앱이 설치돼 있는지, 처음이라면 자동화 권한 허용 창에서 '확인'을 눌렀는지 확인하세요.")
-    return out
+
+    last = ""
+    for attempt in range(1, 4):
+        out = Path(tempfile.mkdtemp()) / (src.stem + ".xlsx")
+        r = subprocess.run(["osascript", "-", str(src), str(out)],
+                           input=script, capture_output=True, text=True)
+        if r.returncode == 0 and out.exists():
+            return out
+        last = r.stderr.strip() or "알 수 없는 오류"
+        if attempt < 3:
+            print(f"   … 변환 실패, 다시 시도합니다 ({attempt}/3)")
+            time.sleep(2)
+
+    raise RuntimeError(
+        "Numbers 변환에 3번 시도했지만 실패했습니다: " + last + "\n"
+        "   Numbers 앱이 설치돼 있는지, 처음이라면 자동화 권한 허용 창에서 '확인'을 눌렀는지 확인하세요.\n"
+        "   계속 안 되면 Numbers에서 '파일 > 다음으로 내보내기 > Excel'로 저장한 뒤 그 xlsx로 다시 실행하세요.")
 
 
 # ─────────────────────────── xlsx 최소 리더
@@ -154,17 +187,17 @@ def main():
         print("   양식 파일이 맞는지 확인해주세요.")
         return 2
 
-    errors, warns = [], []
+    # errors = 양식 자체가 다름(중단) · blanks = 안 채운 칸(빈 문구로 반영하고 알림)
+    errors, warns, blanks = [], [], []
     blocks = {}
 
     # A — 용신 오행 5종 (§11-2). 행 순서 목·화·토·금·수
     got = {}
     rows_a = col_rows(book["A_용신선언"], end=10)
     for i, (row, key, val) in enumerate(rows_a[:5]):
+        got[i] = val or ""
         if not val:
-            errors.append(f"A_용신선언 시트 D{row}칸 (용신: {key}) 이 비어 있습니다")
-        else:
-            got[i] = val
+            blanks.append(f"A_용신선언 시트 D{row}칸 (용신: {key})")
     if len(rows_a) != 5:
         errors.append(
             f"A_용신선언 시트는 용신 오행 5행이어야 하는데 {len(rows_a)}행입니다. "
@@ -177,10 +210,9 @@ def main():
         if key not in LEVELS:
             continue
         seen.add(key)
+        got[key] = val or ""
         if not val:
-            errors.append(f"B_강약진단 시트 D{row}칸 ({LEVEL_LABEL[key]}) 이 비어 있습니다")
-        else:
-            got[key] = val
+            blanks.append(f"B_강약진단 시트 D{row}칸 ({LEVEL_LABEL[key]})")
     # '행 자체가 없는' 경우만 구조 문제로 본다 (비어 있는 건 위에서 이미 잡음)
     absent = [k for k in LEVELS if k not in seen]
     if absent:
@@ -195,23 +227,30 @@ def main():
     for row, key, val in col_rows(book["C_조후보정"]):
         if key not in C_LABEL:
             continue
+        got[key] = val or ""
         if not val:
-            errors.append(f"C_조후보정 시트 D{row}칸 ({C_LABEL[key]}) 이 비어 있습니다")
-        else:
-            got[key] = val
+            blanks.append(f"C_조후보정 시트 D{row}칸 ({C_LABEL[key]})")
     blocks["C"] = got
 
     # D — 오행 5행(순서 기반)
     got = {}
     rows_d = col_rows(book["D_부적처방"], end=10)
     for i, (row, key, val) in enumerate(rows_d[:5]):
+        got[i] = val or ""
         if not val:
-            errors.append(f"D_부적처방 시트 D{row}칸 (용신: {key}) 이 비어 있습니다")
-        else:
-            got[i] = val
+            blanks.append(f"D_부적처방 시트 D{row}칸 (용신: {key})")
     if len(rows_d) < 5:
         errors.append("D_부적처방 시트에 오행 5행이 모두 있어야 합니다")
     blocks["D"] = got
+
+    # 행이 아예 없어 못 읽은 칸도 빈 문구로 채워 생성이 끊기지 않게 한다
+    for i in range(5):
+        blocks["A"].setdefault(i, "")
+        blocks["D"].setdefault(i, "")
+    for k in LEVELS:
+        blocks["B"].setdefault(k, "")
+    for k in ("cold", "hot"):
+        blocks["C"].setdefault(k, "")
 
     # E — 신규 용신 설명 (선택). 일부만 채워져도 통과시키되 알려준다
     info = {}
@@ -257,10 +296,9 @@ def main():
             warns.append("F_한줄소개 문장 틀(template, D7칸)이 비어 소개 문장은 표시되지 않습니다")
 
     if errors:
-        print(f"❌ 아직 안 채워진 칸이 {len(errors)}개 있습니다. 반영하지 않았습니다.\n")
+        print("❌ 양식이 맞지 않아 반영하지 않았습니다.\n")
         for e in errors:
             print("   ·", e)
-        print("\n   노란색 칸을 모두 채운 뒤 다시 실행해주세요.")
         return 1
 
     # ─────────────────────────── phrases.js 생성
@@ -273,7 +311,9 @@ def main():
         "/* 결과 문구 블록 (명세서 §11) — 조립 순서는 피그마 기준 B→A→C→D.",
         f"   ★ 이 파일은 자동 생성됩니다. 직접 고치지 마세요.",
         f"   원본: docs/{path.name}  ·  반영 명령: 메타반영  ·  생성일: {date.today().isoformat()}",
-        "   {용신}·{기신}·{희신}은 치환 변수입니다. */",
+        ("   {용신}·{기신}·{희신}은 치환 변수입니다."
+         + (f"\n   ⚠ 아직 안 채운 칸 {len(blanks)}개 — 빈 문구는 화면에서 그 줄이 통째로 빠집니다." if blanks else "")
+         + " */"),
         "export const PHRASES = {",
         "  B: { // 강약 진단 (§4 판정표 5단계)",
         block(blocks["B"], LEVELS, ""),
@@ -328,11 +368,19 @@ def main():
 
     OUT.write_text(text, encoding="utf-8")
 
+    total = 17  # A 용신5 · B 강약5 · C 조후2 · D 용신5
+    filled = total - len(blanks)
     print(f"✅ 반영 완료 → {OUT.relative_to(ROOT)}")
-    print(f"   문구 블록 17개 (A 용신5 · B 강약5 · C 조후2 · D 용신5)" + (f" + 용신 설명 {len(info)}개" if info else "")
+    print(f"   문구 블록 {total}개 중 {filled}개 채워짐 (A 용신5 · B 강약5 · C 조후2 · D 용신5)"
+          + (f" + 용신 설명 {len(info)}개" if info else "")
           + (" + 한 줄 소개(계절12·색동물60)" if intro else ""))
     if prev == text:
         print("   (내용 변화 없음)")
+    if blanks:
+        print(f"\n   ⚠ 아직 안 채운 칸 {len(blanks)}개 — 지금 화면에선 그 줄이 빠진 채로 나옵니다:")
+        for b in blanks:
+            print("      ·", b)
+        print("   나중에 채우고 다시 실행하면 그대로 반영됩니다.")
     for w in warns:
         print("   ⚠", w)
     print("\n   다음: cd web && npm run build  →  dist/index.html 갱신")

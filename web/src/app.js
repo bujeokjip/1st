@@ -1,6 +1,6 @@
 /* 부적집 — 용신찾기 계산 화면 (engine 모듈 사용)
-   브라우저 배포 모드: 일진 JDN 산술 + 절기 천문 계산(astro) — 네트워크 호출 없음.
-   (KASI API는 브라우저 CORS 차단. 절입 오차 ±8분은 허용 정책, §3-3) */
+   브라우저 배포 모드: 일진 JDN 산술 + NASA JPL Horizons 절기 시각표(nasa) — 네트워크 호출 없음.
+   (KASI·Horizons 둘 다 브라우저 CORS 차단이라, 절기는 빌드 시점에 받아 번들에 내장한다) */
 import { computeSajuPalja } from '../../engine/src/manse.js';
 import { computeYongsin } from '../../engine/src/yongsin.js';
 import { LONGITUDE } from '../../engine/src/korea-time.js';
@@ -80,7 +80,7 @@ $('#btnFind').addEventListener('click', async () => {
       year: +selY.value, month: +selM.value, day: +selD.value,
       hour: +selH.value, minute: +selMin.value,
       longitudeDeg: +selCity.value,
-      useKasiIljin: false, termsProvider: 'astro',
+      useKasiIljin: false, termsProvider: 'nasa',
     });
     const { strength, climate, yongsin } = computeYongsin(saju.pillars);
     renderResult(saju, strength, climate, yongsin);
@@ -94,6 +94,14 @@ $('#btnFind').addEventListener('click', async () => {
 });
 
 const pad = n => String(n).padStart(2, '0');
+
+/* 계산 근거에 표시할 절기 출처 — 실제로 쓴 데이터만 적는다(engine 의 sources.terms) */
+const TERMS_LABEL = {
+  nasa: 'NASA JPL Horizons api 활용 (DE441)',
+  'astro+nasa': 'NASA JPL Horizons api 활용 (DE441) · 일부 연도는 천문 계산',
+  astro: '천문 계산 (Meeus)',
+  'suseong-approx': '수성공식 근사 (경계 ±1일 오차 가능)',
+};
 
 function renderResult(saju, st, cl, yg) {
   const P = saju.pillars;
@@ -119,6 +127,7 @@ function renderResult(saju, st, cl, yg) {
 
   // 결과 문구 (§11) — 조립 순서: 한줄소개(F) → B(강약) → A(용신) → C(조후, 조건부)
   // ※ D(부적처방)는 결과 화면에서 제외 (기획 결정). PHRASES.D는 유지되나 렌더하지 않음.
+  // ※ 빈 블록(작성 중)은 그 줄만 빼고 조립한다.
   const lines = [];
   // 한 줄 소개 (F_한줄소개): 계절=월지(지지), 색동물=일주 60갑자
   if (INTRO?.template) {
@@ -128,10 +137,10 @@ function renderResult(saju, st, cl, yg) {
     const animal = g60 >= 0 ? (INTRO.ganzhi?.[g60] || '') : '';
     if (season && animal) lines.push(INTRO.template.replaceAll('{계절}', season).replaceAll('{색동물}', animal));
   }
-  lines.push(fill(PHRASES.B[st.level], yg), fill(PHRASES.A[yg.U], yg));
+  lines.push(PHRASES.B[st.level], PHRASES.A[yg.U]);
   if (cl.need === 1) lines.push(PHRASES.C.cold);
   else if (cl.need === 4) lines.push(PHRASES.C.hot);
-  $('#rCopy').innerHTML = lines.join('<br>');
+  $('#rCopy').innerHTML = lines.filter(Boolean).map(t => fill(t, yg)).join('<br>');
   $('#rSoft').hidden = st.level !== 'neutral'; // §10-D 중화(−0.9~0.9)에만 붙는 안내
   $('#yongGlyph').textContent = WX_HAN[yg.U];
 
@@ -159,7 +168,7 @@ function renderResult(saju, st, cl, yg) {
     ['서머타임', t.dstMinutes ? '시행 기간 — 1시간 되돌림' : '해당 없음'],
     ['강약', `${st.total > 0 ? '+' : ''}${st.total} · ${st.verdict}`],
     ['조후', `${cl.net > 0 ? '+' : ''}${cl.net} · ${cl.need === 1 ? '한(寒)' : cl.need === 4 ? '열(熱)' : '평(平)'}`],
-    ['절기 데이터', '천문 계산 (허용 오차 ±8분)'],
+    ['절기 데이터', TERMS_LABEL[saju.meta.sources.terms] ?? saju.meta.sources.terms],
   ];
   $('#calcRows').innerHTML = rows.map(([k, v]) => `<div class="c-k">${k}</div><div class="c-v">${v}</div>`).join('');
 }

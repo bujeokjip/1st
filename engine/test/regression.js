@@ -4,6 +4,7 @@ import { computeSajuPalja } from '../src/manse.js';
 import { computeYongsin, catOf } from '../src/yongsin.js';
 import { WX_KO, GAN_WX } from '../src/constants.js';
 import { getTermNodes } from '../src/solar-terms.js';
+import { NASA_TERMS_TO } from '../src/nasa-terms-data.js';
 
 const CASES = [];
 const t = (name, fn) => CASES.push([name, fn]);
@@ -92,6 +93,29 @@ t('astro 프로바이더(네트워크 0, 브라우저 배포 모드): 회귀 동
   const r = await computeSajuPalja({ year: 1979, month: 2, day: 2, hour: 16, minute: 45, useKasiIljin: false, termsProvider: 'astro' });
   assert.equal(r.palja.ko, '무오 을축 경자 갑신');
   assert.equal(r.meta.sources.terms, 'astro');
+});
+
+t('nasa 프로바이더(내장 시각표, 네트워크 0 — 제품 배포 모드): 회귀 동일 + terms=nasa', async () => {
+  const r = await computeSajuPalja({ year: 1979, month: 2, day: 2, hour: 16, minute: 45, useKasiIljin: false, termsProvider: 'nasa' });
+  assert.equal(r.palja.ko, '무오 을축 경자 갑신');
+  assert.equal(r.meta.sources.terms, 'nasa');
+});
+
+t('nasa 내장 시각표 = Horizons 실시간 호출값 (1979 절기 전량 일치)', async () => {
+  const table = await getTermNodes(1979, { provider: 'nasa' });
+  const live = await getTermNodes(1979, { provider: 'jpl' });
+  assert.equal(table.source, 'nasa');
+  assert.equal(live.source, 'jpl');
+  assert.equal(table.nodes.length, live.nodes.length);
+  for (const [i, n] of table.nodes.entries()) {
+    assert.equal(n.scalar, live.nodes[i].scalar, `${n.year} ${n.name} 불일치`);
+  }
+});
+
+t('nasa 시각표 범위 밖 연도: 천문 계산 폴백 + 경고', async () => {
+  const r = await getTermNodes(NASA_TERMS_TO + 2, { provider: 'nasa' });
+  assert.equal(r.source, 'astro');
+  assert.match(r.note, /범위.*밖/);
 });
 
 t('NASA-only 모드(KASI 무호출): 1979 회귀 동일 + 절기 소스 jpl', async () => {

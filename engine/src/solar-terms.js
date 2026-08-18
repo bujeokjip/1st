@@ -5,6 +5,7 @@
    절기의 정의: 태양 겉보기 황경이 15° 배수에 도달하는 순간(입춘=315°). */
 import { get24Divisions, KasiError } from './kasi-client.js';
 import { sunLongitudeYearSeries, crossingUt } from './jpl-client.js';
+import { NASA_TERMS_FROM, NASA_TERMS_TO, NASA_TERMS_B36 } from './nasa-terms-data.js';
 
 /* §3-3 — 12절(월 경계). i=0 소한 … i=11 대설. TERM_JI[i] = 그 절이 여는 월지. */
 export const TERM_MONTH = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
@@ -135,6 +136,32 @@ async function kasiYearTerms(year) {
   return kasiYearCache.get(year);
 }
 
+/* ── NASA 절기 시각표 (provider: 'nasa') — 내장 데이터, 네트워크 0 ──
+   Horizons는 브라우저에서 CORS로 막히고 제품은 서버가 없다. 그래서 빌드 시점에 받아
+   nasa-terms-data.js 로 구워 두고 런타임에는 표만 읽는다(engine/tools/fetch-nasa-terms.mjs).
+   표 범위 밖 연도는 Meeus 천문 계산으로 넘긴다. */
+let nasaTable = null;
+function nasaScalars(yr) {
+  if (yr < NASA_TERMS_FROM || yr > NASA_TERMS_TO) return null;
+  if (!nasaTable) {
+    nasaTable = new Map();
+    const parts = NASA_TERMS_B36.split(',');
+    let cur = parseInt(parts[0], 36);
+    const flat = [cur];
+    for (let i = 1; i < parts.length; i++) flat.push(cur += parseInt(parts[i], 36));
+    for (let i = 0; i * 12 < flat.length; i++) {
+      nasaTable.set(NASA_TERMS_FROM + i, flat.slice(i * 12, i * 12 + 12).map(m => m * 60000));
+    }
+  }
+  return nasaTable.get(yr) ?? null;
+}
+
+function nasaYearTerms(yr) {
+  const scalars = nasaScalars(yr);
+  if (!scalars) return null;
+  return TERM_NAMES.map((name, i) => ({ name, ji: TERM_JI[i], year: yr, scalar: scalars[i] }));
+}
+
 /* ── NASA JPL Horizons 절기 (provider: 'jpl') — KASI 무호출 모드용, 초 단위 정밀 ── */
 async function jplYearTerms(yr) {
   const rows = await sunLongitudeYearSeries(yr);
@@ -145,15 +172,22 @@ async function jplYearTerms(yr) {
 }
 
 /* 전년 대설 ~ 익년 소한 노드 14개 + 출처.
-   provider 'kasi'(기본): KASI 특일 → 천문 계산 / 'jpl': NASA Horizons → 천문 계산
-   source: 'kasi' | 'jpl' | 'astro' | 조합('astro+kasi' 등) | 'suseong-approx' */
+   provider 'kasi'(기본): KASI 특일 → 천문 계산 / 'jpl': NASA Horizons 실시간 호출 → 천문 계산
+             'nasa'(브라우저 배포용): NASA 내장 시각표 → 천문 계산 / 'astro': 천문 계산만
+   source: 'kasi' | 'jpl' | 'nasa' | 'astro' | 조합('astro+nasa' 등) | 'suseong-approx' */
 export async function getTermNodes(y, { preferExact = true, provider = 'kasi' } = {}) {
   if (!preferExact) return { nodes: approxNodes(y), source: 'suseong-approx', note: null };
   try {
     const used = new Set();
     const pick = async yr => {
-      if (provider === 'astro') { // 네트워크 완전 배제 모드(브라우저 배포용)
+      if (provider === 'astro') { // 네트워크 완전 배제 모드
         used.add('astro');
+        return astroYearTerms(yr);
+      }
+      if (provider === 'nasa') { // 네트워크 0 + NASA 데이터 (브라우저 배포용)
+        const t = nasaYearTerms(yr);
+        if (t) { used.add('nasa'); return t; }
+        used.add('astro'); // 표 범위 밖 연도
         return astroYearTerms(yr);
       }
       if (provider === 'jpl') {
@@ -183,9 +217,12 @@ export async function getTermNodes(y, { preferExact = true, provider = 'kasi' } 
     const nodes = [prev.find(t => t.name === '대설'), ...cur, next.find(t => t.name === '소한')]
       .sort((a, b) => a.scalar - b.scalar);
     const corrected = nodes.filter(n => n.corrected).map(n => `${n.year} ${n.name}`);
-    const note = corrected.length
+    let note = corrected.length
       ? `KASI 절기 데이터 이상치 감지(${corrected.join(', ')}) → 천문 계산값으로 보정`
       : null;
+    if (provider === 'nasa' && used.has('astro')) {
+      note = `NASA 시각표 범위(${NASA_TERMS_FROM}~${NASA_TERMS_TO}) 밖 연도 포함 → 해당 연도는 천문 계산(Meeus) 폴백`;
+    }
     return { nodes, source: [...used].sort().join('+'), note };
   } catch (e) {
     return {
