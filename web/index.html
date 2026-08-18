@@ -116,6 +116,12 @@
     letter-spacing:.06em; margin:0 0 24px; text-align:center; line-height:1.15;
     text-shadow:0 3px 18px rgba(242,226,187,.12);
   }
+  /* "찾았어요!" 아래 한 줄 띄움 */
+  .r-title .r-title-gap{display:block; height:1.15em;}
+  /* 아래 두 줄(한줄소개 + 용신 문장): "찾았어요!"보다 작게, 두 줄 사이 행간은 살짝 넓게 */
+  .r-title .r-title-sub{display:block; font-size:.82em; line-height:1.5;}
+  /* 한 줄 소개(사람마다 다름) — 비어 있으면 줄 자체가 안 생김 */
+  #rIntro:not(:empty){display:block;}
   .r-copy{text-align:center; font-size:clamp(15px,1.9vw,18.5px); color:#E3D0A6; margin:0; line-height:1.65;}
   .r-soft{text-align:center; font-size:13px; color:#9A8258; margin:12px 0 0;}
   .glyph-stage{display:grid; place-items:center; margin:20px 0 6px;}
@@ -247,7 +253,7 @@
     <div class="pillars" id="pillars"></div>
     <p class="palja-line" id="paljaLine"></p>
 
-    <h1 class="r-title">찾았어요!<br>당신 삶의 밸런스를 찾아줄 용신(用神)</h1>
+    <h1 class="r-title">찾았어요!<br><span class="r-title-gap"></span><span class="r-title-sub"><span id="rIntro"></span>당신 삶의 밸런스를 찾아줄 용신(用神)</span></h1>
     <div class="glyph-stage"><div class="glyph-char" id="yongGlyph"></div></div>
     <div class="yong-info" id="yongInfo" hidden></div>
     <p class="r-copy" id="rCopy"></p>

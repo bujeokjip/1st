@@ -163,19 +163,21 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
     : `${inp.year}년 ${inp.month}월 ${inp.day}일`;
   $('#paljaLine').textContent = `${dateStr} ${timeStr} | ${cityName}`;
 
-  // 결과 문구 (§11) — 조립 순서: 한줄소개(F) → B(강약) → A(용신) → C(조후, 조건부)
-  // ※ D(부적처방)는 결과 화면에서 제외 (기획 결정). PHRASES.D는 유지되나 렌더하지 않음.
-  // ※ 빈 블록(작성 중)은 그 줄만 빼고 조립한다.
-  const lines = [];
-  // 한 줄 소개 (F_한줄소개): 계절=월지(지지), 색동물=일주 60갑자
+  // 한 줄 소개 (F_한줄소개) — 제목 영역 "찾았어요!" 아래에 표시. 계절=월지(지지), 색동물=일주 60갑자
+  let intro = '';
   if (INTRO?.template) {
     let g60 = -1;
     for (let n = 0; n < 60; n++) if (n % 10 === P.day.stem && n % 12 === P.day.branch) { g60 = n; break; }
     const season = INTRO.season?.[P.month.branch] || '';
     const animal = g60 >= 0 ? (INTRO.ganzhi?.[g60] || '') : '';
-    if (season && animal) lines.push(INTRO.template.replaceAll('{계절}', season).replaceAll('{색동물}', animal));
+    if (season && animal) intro = INTRO.template.replaceAll('{계절}', season).replaceAll('{색동물}', animal);
   }
-  lines.push(PHRASES.B[st.level], PHRASES.A[yg.U]);
+  $('#rIntro').textContent = intro;
+
+  // 결과 문구 (§11) — 조립 순서: B(강약) → A(용신) → C(조후, 조건부)
+  // ※ D(부적처방)는 결과 화면에서 제외 (기획 결정). PHRASES.D는 유지되나 렌더하지 않음.
+  // ※ 빈 블록(작성 중)은 그 줄만 빼고 조립한다.
+  const lines = [PHRASES.B[st.level], PHRASES.A[yg.U]];
   if (cl.need === 1) lines.push(PHRASES.C.cold);
   else if (cl.need === 4) lines.push(PHRASES.C.hot);
   $('#rCopy').innerHTML = lines.filter(Boolean).map(t => fill(t, yg)).join('<br>');
