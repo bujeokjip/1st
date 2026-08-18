@@ -234,6 +234,28 @@ def main():
         elif len(info) < 5:
             warns.append(f"E_용신설명이 5개 중 {len(info)}개만 채워졌습니다 — 나머지 오행은 설명이 안 나옵니다")
 
+    # F — 한 줄 소개 (선택). 문장 틀 + 계절(월지 12) + 색동물(일주 60갑자)
+    intro = None
+    if "F_한줄소개" in book:
+        sheet = book["F_한줄소개"]
+        kv = {}  # 키(A열) → 값(D열). 시트 어느 행에 있든 키로 찾는다.
+        for r in range(1, 130):
+            k = sheet.get(f"A{r}")
+            if k and sheet.get(f"D{r}"):
+                kv[k] = sheet.get(f"D{r}")
+        template = kv.get("template")
+        season = [kv.get(f"s{i}") for i in range(12)]
+        ganzhi = [kv.get(f"g{i}") for i in range(60)]
+        if template:
+            intro = {"template": template, "season": season, "ganzhi": ganzhi}
+            miss_s, miss_g = sum(not s for s in season), sum(not g for g in ganzhi)
+            if miss_s:
+                warns.append(f"F_한줄소개 계절 {miss_s}칸이 비었습니다 — 그 달 태생은 소개 문장이 안 나옵니다")
+            if miss_g:
+                warns.append(f"F_한줄소개 색동물 {miss_g}칸이 비었습니다 — 그 일주는 소개 문장이 안 나옵니다")
+        elif any(season) or any(ganzhi):
+            warns.append("F_한줄소개 문장 틀(template, D7칸)이 비어 소개 문장은 표시되지 않습니다")
+
     if errors:
         print(f"❌ 아직 안 채워진 칸이 {len(errors)}개 있습니다. 반영하지 않았습니다.\n")
         for e in errors:
@@ -284,6 +306,17 @@ def main():
         out += ["/* 용신 설명 미작성 — 엑셀 E_용신설명 시트를 채우면 결과 화면에 표시됩니다 */",
                 "export const YONGSIN_INFO = {};", ""]
 
+    if intro:
+        out += ["/* 한 줄 소개 — 결과 문구 맨 위. season=월지(지지) 0~11, ganzhi=일주 60갑자 0~59 */",
+                "export const INTRO = {",
+                f"  template: {js(intro['template'])},",
+                f"  season: [{', '.join(js(s or '') for s in intro['season'])}],",
+                f"  ganzhi: [{', '.join(js(g or '') for g in intro['ganzhi'])}],",
+                "};", ""]
+    else:
+        out += ["/* 한 줄 소개 미작성 — 엑셀 F_한줄소개 시트를 채우면 결과 맨 위에 표시됩니다 */",
+                "export const INTRO = null;", ""]
+
     text = "\n".join(l for l in out if l is not None) + ""
     text = re.sub(r"\n{3,}", "\n\n", text)
 
@@ -296,7 +329,8 @@ def main():
     OUT.write_text(text, encoding="utf-8")
 
     print(f"✅ 반영 완료 → {OUT.relative_to(ROOT)}")
-    print(f"   문구 블록 17개 (A 용신5 · B 강약5 · C 조후2 · D 용신5)" + (f" + 용신 설명 {len(info)}개" if info else ""))
+    print(f"   문구 블록 17개 (A 용신5 · B 강약5 · C 조후2 · D 용신5)" + (f" + 용신 설명 {len(info)}개" if info else "")
+          + (" + 한 줄 소개(계절12·색동물60)" if intro else ""))
     if prev == text:
         print("   (내용 변화 없음)")
     for w in warns:

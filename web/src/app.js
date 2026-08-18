@@ -5,7 +5,7 @@ import { computeSajuPalja } from '../../engine/src/manse.js';
 import { computeYongsin } from '../../engine/src/yongsin.js';
 import { LONGITUDE } from '../../engine/src/korea-time.js';
 import { GAN, JI, GAN_KO, JI_KO, GAN_WX, JI_WX, WX_HAN, WX_KO } from '../../engine/src/constants.js';
-import { PHRASES, WX_NAME, YONGSIN_INFO } from './phrases.js';
+import { PHRASES, WX_NAME, YONGSIN_INFO, INTRO } from './phrases.js';
 
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
@@ -99,7 +99,7 @@ function renderResult(saju, st, cl, yg) {
   const P = saju.pillars;
 
   // 사주팔자 4기둥
-  const order = [['year', '년주'], ['month', '월주'], ['day', '일주'], ['hour', '시주']];
+  const order = [['hour', '시주'], ['day', '일주'], ['month', '월주'], ['year', '년주']];
   $('#pillars').innerHTML = order.map(([k, tag]) => {
     const p = P[k];
     return `<div class="pillar${k === 'day' ? ' me' : ''}">
@@ -109,33 +109,46 @@ function renderResult(saju, st, cl, yg) {
       <div class="pwx">${WX_KO[GAN_WX[p.stem]]}·${WX_KO[JI_WX[p.branch]]}</div>
     </div>`;
   }).join('');
-  $('#paljaLine').textContent = `${saju.palja.ko} · ${saju.sajuYear}년주 기준 (일간 ${saju.dayMaster.ko})`;
+  // 앞 페이지에서 입력한 값을 그대로 표시 (예: 1979년 2월 2일 오후 4시 45분 | 서울)
+  const inp = saju.input;
+  const ampm = inp.hour < 12 ? '오전' : '오후';
+  const h12 = inp.hour % 12 === 0 ? 12 : inp.hour % 12;
+  const timeStr = `${ampm} ${h12}시${inp.minute ? ` ${inp.minute}분` : ''}`;
+  const cityName = selCity.selectedOptions[0]?.textContent ?? '';
+  $('#paljaLine').textContent = `${inp.year}년 ${inp.month}월 ${inp.day}일 ${timeStr} | ${cityName}`;
 
-  // 결과 문구 (§11 — 조립 순서 B→A→C→D)
-  // 조립 순서 B(강약)→A(용신)→C(조후, 조건부)→D(용신) — §11-3
-  const lines = [fill(PHRASES.B[st.level], yg), fill(PHRASES.A[yg.U], yg)];
+  // 결과 문구 (§11) — 조립 순서: 한줄소개(F) → B(강약) → A(용신) → C(조후, 조건부)
+  // ※ D(부적처방)는 결과 화면에서 제외 (기획 결정). PHRASES.D는 유지되나 렌더하지 않음.
+  const lines = [];
+  // 한 줄 소개 (F_한줄소개): 계절=월지(지지), 색동물=일주 60갑자
+  if (INTRO?.template) {
+    let g60 = -1;
+    for (let n = 0; n < 60; n++) if (n % 10 === P.day.stem && n % 12 === P.day.branch) { g60 = n; break; }
+    const season = INTRO.season?.[P.month.branch] || '';
+    const animal = g60 >= 0 ? (INTRO.ganzhi?.[g60] || '') : '';
+    if (season && animal) lines.push(INTRO.template.replaceAll('{계절}', season).replaceAll('{색동물}', animal));
+  }
+  lines.push(fill(PHRASES.B[st.level], yg), fill(PHRASES.A[yg.U], yg));
   if (cl.need === 1) lines.push(PHRASES.C.cold);
   else if (cl.need === 4) lines.push(PHRASES.C.hot);
-  lines.push(fill(PHRASES.D[yg.U], yg));
   $('#rCopy').innerHTML = lines.join('<br>');
   $('#rSoft').hidden = st.level !== 'neutral'; // §10-D 중화(−0.9~0.9)에만 붙는 안내
   $('#yongGlyph').textContent = WX_HAN[yg.U];
 
-  // 용신 설명 (기획 문구가 채워진 오행만 표시 — 엑셀 E_용신설명 시트)
+  // 용신 설명 — 키워드 칩만 표시 (제목·설명은 결과 화면에서 제외, 기획 결정 · 엑셀 E_용신설명 시트)
   const info = YONGSIN_INFO[yg.U];
   const box = $('#yongInfo');
-  box.hidden = !info;
-  if (info) {
-    box.innerHTML = `${info.title ? `<p class="yi-title">${info.title}</p>` : ''}
-      ${info.desc ? `<p class="yi-desc">${info.desc}</p>` : ''}
-      ${info.keywords?.length ? `<div class="yi-kw">${info.keywords.map(k => `<span>${k}</span>`).join('')}</div>` : ''}`;
+  box.hidden = !info?.keywords?.length;
+  if (info?.keywords?.length) {
+    // 키워드 칩은 한 줄에 최대 3개씩 (3개 단위로 줄을 끊어 각 줄 가운데 정렬)
+    const rows = [];
+    for (let i = 0; i < info.keywords.length; i += 3) rows.push(info.keywords.slice(i, i + 3));
+    box.innerHTML = `<div class="yi-kw">${rows.map(row =>
+      `<div class="yi-kw-row">${row.map(k => `<span>${k}</span>`).join('')}</div>`).join('')}</div>`;
   }
 
-  // 5신
-  const gods = [['용신', yg.U, true], ['희신', yg.hee], ['기신', yg.gi], ['한신', yg.han], ['구신', yg.gu]];
-  $('#gods').innerHTML = gods.map(([nm, w, main]) =>
-    `<div class="god${main ? ' main' : ''}"><span class="g-nm">${nm}</span><span class="g-wx">${WX_KO[w]} ${WX_HAN[w]}</span></div>`,
-  ).join('');
+  // 5신(용신·희신·기신·한신·구신) 칩 — 결과 화면에서 제외 (기획 결정)
+  $('#gods').hidden = true;
 
   // 계산 근거 (§3-6 보정 내역 — 값이 어떻게 나왔는지 확인 가능하게)
   const t = saju.meta.time, s = saju.solarTime;

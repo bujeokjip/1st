@@ -296,6 +296,51 @@ ws.cell(row=r + 1, column=1, value="※ 화(火) 행에 채워둔 값은 형식 
     Font(name=FONT, size=9, color="A8352B")
 ws.merge_cells(start_row=r + 1, start_column=1, end_row=r + 1, end_column=9)
 
+# ─────────────────────────── F_한줄소개 (한 줄 소개 = 문장틀 + 계절 월지12 + 색동물 일주60갑자)
+_GAN, _JI = "甲乙丙丁戊己庚辛壬癸", "子丑寅卯辰巳午未申酉戌亥"
+_GAN_KO, _JI_KO = "갑을병정무기경신임계", "자축인묘진사오미신유술해"
+_STEM_WX = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]
+_COLOR = ["푸른", "붉은", "누런", "하얀", "검은"]
+_ANIMAL = ["쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지"]
+_SEASON = ["한겨울", "한겨울", "이른 봄", "봄", "늦봄", "이른 여름",
+           "한여름", "늦여름", "이른 가을", "가을", "늦가을", "초겨울"]
+_TEMPLATE = "당신은 {계절}에 태어난 작고 소중한 {색동물}"
+
+ws = wb.create_sheet("F_한줄소개")
+ws["A1"], ws["A1"].font = "F. 한 줄 소개", TITLE
+ws["A2"] = "결과 화면 맨 위에 붙는 요약 문장입니다.  예) 당신은 한겨울에 태어난 작고 소중한 하얀쥐"
+ws["A2"].font = MUTED
+ws["A3"] = "계절은 월지(태어난 달), 색동물은 일주(태어난 날의 60갑자)에서 자동으로 끼웁니다. 노란 칸만 원하는 표현으로 고치세요."
+ws["A3"].font = MUTED
+
+
+def _f_row(r, key, label, sample):
+    ws.cell(row=r, column=1, value=key).font = MUTED
+    ws.cell(row=r, column=2, value=label).font = BODY
+    ws.cell(row=r, column=3, value=sample).font = DRAFT
+    c = ws.cell(row=r, column=4, value=sample)
+    c.fill, c.font, c.alignment = INPUT_FILL, BODY, WRAP
+
+
+ws["A5"], ws["A5"].font = "① 문장 틀", BOLD
+header(ws, 6, [("키(코드)", 10), ("설명", 16), ("예시", 22), ("✏️ 문구", 34)])
+_f_row(7, "template", "문장 틀", _TEMPLATE)
+ws["A8"] = "※ {계절}·{색동물}은 아래 표에서 자동 치환됩니다. 문장 틀만 바꾸려면 D7만 고치세요."
+ws["A8"].font = MUTED
+
+ws["A10"], ws["A10"].font = "② 계절 — 월지(태어난 달의 지지) 12", BOLD
+header(ws, 11, [("키(코드)", 10), ("월지", 16), ("예시", 22), ("✏️ 계절 표현", 34)])
+for i in range(12):
+    _f_row(12 + i, f"s{i}", f"{_JI[i]}({_JI_KO[i]})월", _SEASON[i])
+
+_base = 25
+ws[f"A{_base}"], ws[f"A{_base}"].font = "③ 색동물 — 일주(태어난 날의 60갑자) 60", BOLD
+header(ws, _base + 1, [("키(코드)", 10), ("일주(갑자)", 16), ("예시", 22), ("✏️ 색·동물 표현", 34)])
+for n in range(60):
+    _st, _br = n % 10, n % 12
+    _f_row(_base + 2 + n, f"g{n}", f"{_GAN[_st]}{_JI[_br]}({_GAN_KO[_st]}{_JI_KO[_br]})",
+           _COLOR[_STEM_WX[_st]] + _ANIMAL[_br])
+
 # ─────────────────────────── 조합미리보기 (5 오행 × 5 강약 × 3 조후 = 75)
 ws = wb.create_sheet("조합미리보기")
 ws["A1"], ws["A1"].font = "조합 미리보기 (75가지)", TITLE
