@@ -224,15 +224,21 @@ def main():
             "옛 3단계 양식이라면 새 양식 파일로 다시 작성해주세요")
     blocks["B"] = got
 
-    # C — 키 cold/hot
-    C_LABEL = {"cold": "사주가 차가울 때", "hot": "사주가 뜨거울 때"}
-    got = {}
-    for row, key, val in col_rows(book["C_조후보정"]):
+    # C — 키 cold/hot/mild. ★ 같은 키 행이 여러 개면 전부 후보 → 랜덤 1개
+    # mild(평)는 선택 — 행이 없거나 비어 있으면 예전처럼 평일 때 C를 생략한다
+    C_LABEL = {"cold": "사주가 차가울 때", "hot": "사주가 뜨거울 때", "mild": "치우치지 않을 때(평)"}
+    got, seen = {k: [] for k in C_LABEL}, set()
+    for row, key, val in col_rows(book["C_조후보정"], end=60):
         if key not in C_LABEL:
             continue
-        got[key] = val or ""
-        if not val:
-            blanks.append(f"C_조후보정 시트 D{row}칸 ({C_LABEL[key]})")
+        seen.add(key)
+        if val:
+            got[key].append(val)
+    for k in ("cold", "hot"):
+        if not got[k]:
+            blanks.append(f"C_조후보정 시트 ({C_LABEL[k]}) 문구가 하나도 없습니다")
+    if "mild" not in seen:
+        warns.append("C_조후보정에 mild(평) 행이 없어 조후가 평인 사람에겐 조후 문장이 안 나옵니다 — 원하면 A열에 'mild' 행을 추가하세요")
     blocks["C"] = got
 
     # D — 오행 5행(순서 기반)
@@ -269,7 +275,8 @@ def main():
                 info[i] = {
                     "title": title or "",
                     "desc": desc or "",
-                    "keywords": [k.strip() for k in re.split(r"[,·]", kw) if k.strip()],
+                    # 구분자는 쉼표(,)만 — 문구 안에 '·'를 자유롭게 쓸 수 있게. 화면에선 랜덤 3개만 표시
+                    "keywords": [k.strip() for k in kw.split(",") if k.strip()],
                 }
         if not info:
             warns.append("E_용신설명 시트가 비어 있어 용신 설명 영역은 화면에 표시되지 않습니다")
@@ -331,8 +338,8 @@ def main():
         f"  A: {{ // 용신 선언 (용신 오행 5종) — 후보 {n_a}개",
         block_list(blocks["A"], list(range(5))),
         "  },",
-        "  C: { // 조후 보정 (한/열 뚜렷할 때만, 평이면 생략)",
-        block(blocks["C"], ["cold", "hot"], ""),
+        f"  C: {{ // 조후 보정 — cold(한)/hot(열)/mild(평). 후보 {sum(len(v) for v in blocks['C'].values())}개. mild가 비면 평일 때 생략",
+        block_list(blocks["C"], ["cold", "hot", "mild"]),
         "  },",
         "  D: { // 부적 처방 (용신 오행 5종)",
         "\n".join(f"    {i}: {js(blocks['D'][i])}," for i in range(5)),
@@ -384,7 +391,8 @@ def main():
     print(f"   문구 블록 {total}개 중 {filled}개 채워짐 (A 용신5 · B 강약5 · C 조후2 · D 용신5)"
           + (f" + 용신 설명 {len(info)}개" if info else "")
           + (" + 한 줄 소개(계절12·색동물60)" if intro else ""))
-    print(f"   랜덤 후보: A {n_a}개 · B {n_b}개  (같은 키 행을 더 적으면 늘어남)")
+    n_c = sum(len(v) for v in blocks["C"].values())
+    print(f"   랜덤 후보: A {n_a}개 · B {n_b}개 · C {n_c}개(cold {len(blocks['C']['cold'])}/hot {len(blocks['C']['hot'])}/mild {len(blocks['C']['mild'])})  (같은 키 행을 더 적으면 늘어남)")
     if prev == text:
         print("   (내용 변화 없음)")
     if blanks:

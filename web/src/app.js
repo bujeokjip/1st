@@ -190,25 +190,19 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
   // A·B는 후보 배열 — 매번 랜덤으로 1개를 뽑는다 (기획 결정: 볼 때마다 다른 문장)
   const pick = arr => Array.isArray(arr) ? (arr.length ? arr[Math.floor(Math.random() * arr.length)] : '') : arr;
   const lines = [pick(PHRASES.A[yg.U]), pick(PHRASES.B[st.level])];
-  if (cl.need === 1) lines.push(PHRASES.C.cold);
-  else if (cl.need === 4) lines.push(PHRASES.C.hot);
+  // C(조후): 한→cold, 열→hot, 평→mild. 각각 후보 배열에서 랜덤 1개 (mild가 비어 있으면 평일 땐 생략)
+  const cKey = cl.need === 1 ? 'cold' : cl.need === 4 ? 'hot' : 'mild';
+  lines.push(pick(PHRASES.C[cKey]));
   // 블록 사이 줄바꿈 없이 한 문단으로 이어 붙인다 (기획 결정)
   $('#rCopy').innerHTML = lines.filter(Boolean).map(t => fill(t, yg)).join(' ');
-  $('#rSoft').hidden = st.level !== 'neutral'; // §10-D 중화(−0.9~0.9)에만 붙는 안내
+  // §10-D 중화 소프트 안내는 별도 하드코딩 없이 B_강약진단 neutral 문구(넘버스)가 담당한다 (2026-08-18 기획 결정)
   $('#yongGlyph').textContent = WX_HAN[yg.U];
 
   // 용신 설명 — 키워드 칩만 표시 (제목·설명은 결과 화면에서 제외, 기획 결정 · 엑셀 E_용신설명 시트)
   const info = YONGSIN_INFO[yg.U];
   const box = $('#yongInfo');
   box.hidden = !info?.keywords?.length;
-  if (info?.keywords?.length) {
-    // 키워드 칩은 한 줄에 최대 3개씩, 모바일(좁은 화면)에선 2개씩 (줄 단위로 끊어 가운데 정렬)
-    const perRow = matchMedia('(max-width: 600px)').matches ? 2 : 3;
-    const rows = [];
-    for (let i = 0; i < info.keywords.length; i += perRow) rows.push(info.keywords.slice(i, i + perRow));
-    box.innerHTML = `<div class="yi-kw">${rows.map(row =>
-      `<div class="yi-kw-row">${row.map(k => `<span>${k}</span>`).join('')}</div>`).join('')}</div>`;
-  }
+  if (info?.keywords?.length) renderKeywords(info.keywords);
 
   // 5신(용신·희신·기신·한신·구신) 칩 — 결과 화면에서 제외 (기획 결정)
   $('#gods').hidden = true;
@@ -227,6 +221,38 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
   ];
   $('#calcRows').innerHTML = rows.map(([k, v]) => `<div class="c-k">${k}</div><div class="c-v">${v}</div>`).join('');
 }
+
+/* 키워드 칩 — 후보 개수와 상관없이 매번 랜덤 7개 (기획 결정 · 후보는 쉼표로 넣음).
+   맨 오른쪽 ↻ 버튼을 누르면 다른 건 그대로 두고 키워드만 다시 뽑는다. */
+function renderKeywords(all) {
+  const shown = [...all].sort(() => Math.random() - 0.5).slice(0, 7);
+  // 칩은 폭에 맞춰 자연스럽게 줄바꿈, 각 줄 가운데 정렬 (CSS .yi-kw flex-wrap)
+  // 마지막 칩과 ↻를 한 덩어리(.yi-last)로 묶어 ↻가 혼자 다음 줄로 떨어지지 않게 한다
+  const chips = shown.map(k => `<span>${k}</span>`);
+  const last = chips.pop() ?? '';
+  $('#yongInfo').innerHTML = `<div class="yi-kw">${chips.join('')}` +
+    `<span class="yi-last">${last}<button class="yi-refresh" type="button" aria-label="키워드 다시 뽑기" title="다른 키워드 보기">↻</button></span></div>`;
+  $('#yongInfo .yi-refresh').addEventListener('click', e => {
+    e.currentTarget.classList.add('spin');
+    setTimeout(() => renderKeywords(all), 180); // 살짝 돌고 나서 교체
+  });
+  fitKeywordsOneLine();
+}
+
+/* 태블릿 이상(>600px)에선 7개 + ↻가 반드시 한 줄. 넘치면 칩 크기를 한 단계씩 줄여 맞춘다 (모바일은 줄바꿈 허용) */
+function fitKeywordsOneLine() {
+  const kw = $('#yongInfo .yi-kw');
+  if (!kw || matchMedia('(max-width: 600px)').matches) return;
+  const steps = ['tight', 'tighter', 'tightest'];
+  kw.classList.remove(...steps);
+  const fits = () => kw.scrollWidth <= kw.parentElement.clientWidth;
+  for (const cls of steps) {
+    if (fits()) return;
+    kw.classList.remove(...steps);
+    kw.classList.add(cls);
+  }
+}
+window.addEventListener('resize', fitKeywordsOneLine);
 
 /* ── 공개 연출: [결과보기]를 누르면 블러가 걷히며 본문이 드러난다 ── */
 $('#btnReveal').addEventListener('click', () => {
