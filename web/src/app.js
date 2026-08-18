@@ -187,9 +187,10 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
   const box = $('#yongInfo');
   box.hidden = !info?.keywords?.length;
   if (info?.keywords?.length) {
-    // 키워드 칩은 한 줄에 최대 3개씩 (3개 단위로 줄을 끊어 각 줄 가운데 정렬)
+    // 키워드 칩은 한 줄에 최대 3개씩, 모바일(좁은 화면)에선 2개씩 (줄 단위로 끊어 가운데 정렬)
+    const perRow = matchMedia('(max-width: 600px)').matches ? 2 : 3;
     const rows = [];
-    for (let i = 0; i < info.keywords.length; i += 3) rows.push(info.keywords.slice(i, i + 3));
+    for (let i = 0; i < info.keywords.length; i += perRow) rows.push(info.keywords.slice(i, i + perRow));
     box.innerHTML = `<div class="yi-kw">${rows.map(row =>
       `<div class="yi-kw-row">${row.map(k => `<span>${k}</span>`).join('')}</div>`).join('')}</div>`;
   }
