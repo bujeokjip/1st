@@ -2,7 +2,7 @@
 """기존 결과문구 넘버스 양식에 'F_한줄소개' 시트를 덧붙인다 (기존 시트·내용 보존).
 
 사용:  python3 tools/add-intro-to-form.py [입력.numbers] [출력.numbers]
-기본:  입력=docs/용신_결과문구_작성양식.numbers, 출력=입력과 동일(제자리 갱신)
+기본:  입력=policy/용신_결과문구_작성양식.numbers, 출력=입력과 동일(제자리 갱신)
 
 한 줄 소개 문장 = 템플릿 + 계절(월지 12) + 색동물(일주 60갑자).
 색·동물을 조합 자동생성하지 않고 60갑자 전부를 기획이 직접 지정하는 방식(기획 결정).
@@ -19,7 +19,7 @@ from openpyxl import load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 
 ROOT = Path(__file__).resolve().parent.parent
-DEFAULT = ROOT / "docs" / "용신_결과문구_작성양식.numbers"
+DEFAULT = ROOT / "policy" / "용신_결과문구_작성양식.numbers"
 
 SHEET = "F_한줄소개"
 TEMPLATE_DEFAULT = "당신은 {계절}에 태어난 작고 소중한 {색동물}"

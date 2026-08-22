@@ -2,7 +2,7 @@
 """기획자용 결과 문구 작성 양식 생성 — 명세서 §11 블록 조립 구조.
 
 사용:  python3 tools/make-phrase-form.py [출력경로]
-기본:  docs/용신_결과문구_작성양식.numbers   (기획자가 맥 Numbers로 작업하므로)
+기본:  policy/용신_결과문구_작성양식.numbers   (기획자가 맥 Numbers로 작업하므로)
        확장자를 .xlsx 로 주면 엑셀로 바로 생성한다.
 
 .numbers 로 낼 때는 openpyxl 로 xlsx 를 만든 뒤 Numbers 앱을 시켜 변환한다(macOS 전용).
@@ -21,7 +21,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.comments import Comment
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "docs" / "용신_결과문구_작성양식.numbers"
+OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "policy" / "용신_결과문구_작성양식.numbers"
 
 
 def xlsx_to_numbers(src, dst):

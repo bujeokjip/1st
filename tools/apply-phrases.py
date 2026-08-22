@@ -2,7 +2,7 @@
 """기획자가 채운 결과 문구 엑셀 → web/src/phrases.js 자동 반영.
 
 사용:  python3 tools/apply-phrases.py [엑셀경로] [--dry-run]
-기본 엑셀:  docs/용신_결과문구_작성양식.xlsx
+기본 엑셀:  policy/용신_결과문구_작성양식.xlsx
 
 외부 패키지를 쓰지 않는다(표준 라이브러리 zipfile + ElementTree로 xlsx를 직접 읽음).
 친구 PC에서 pip install 없이 바로 돌아가야 하기 때문.
@@ -26,8 +26,8 @@ RNS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
 PKG = "{http://schemas.openxmlformats.org/package/2006/relationships}"
 
 ROOT = Path(__file__).resolve().parent.parent
-XLSX = ROOT / "docs" / "용신_결과문구_작성양식.xlsx"
-NUMBERS = ROOT / "docs" / "용신_결과문구_작성양식.numbers"
+XLSX = ROOT / "policy" / "용신_결과문구_작성양식.xlsx"
+NUMBERS = ROOT / "policy" / "용신_결과문구_작성양식.numbers"
 OUT = ROOT / "web" / "src" / "phrases.js"
 
 WX_KO = ["목", "화", "토", "금", "수"]
@@ -326,7 +326,7 @@ def main():
     out = [
         "/* 결과 문구 블록 (명세서 §11) — 조립 순서는 피그마 기준 B→A→C→D.",
         f"   ★ 이 파일은 자동 생성됩니다. 직접 고치지 마세요.",
-        f"   원본: docs/{path.name}  ·  반영 명령: 메타반영  ·  생성일: {date.today().isoformat()}",
+        f"   원본: policy/{path.name}  ·  반영 명령: 메타반영  ·  생성일: {date.today().isoformat()}",
         ("   {용신}·{기신}·{희신}은 치환 변수입니다."
          + "\n   A·B는 키마다 문구 배열 — 화면에서 매번 랜덤으로 1개를 뽑는다(같은 키 행을 여러 개 적으면 후보가 늘어남)."
          + (f"\n   ⚠ 아직 안 채운 칸 {len(blanks)}개 — 빈 문구는 화면에서 그 줄이 통째로 빠집니다." if blanks else "")
