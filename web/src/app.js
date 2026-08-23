@@ -133,16 +133,6 @@ $('#btnFind').addEventListener('click', async () => {
   }
 });
 
-const pad = n => String(n).padStart(2, '0');
-
-/* 계산 근거에 표시할 절기 출처 — 실제로 쓴 데이터만 적는다(engine 의 sources.terms) */
-const TERMS_LABEL = {
-  nasa: 'NASA JPL Horizons api 활용 (DE441)',
-  'astro+nasa': 'NASA JPL Horizons api 활용 (DE441) · 일부 연도는 천문 계산',
-  astro: '천문 계산 (Meeus)',
-  'suseong-approx': '수성공식 근사 (경계 ±1일 오차 가능)',
-};
-
 function renderResult(saju, st, cl, yg, lunarInput = null) {
   const P = saju.pillars;
 
@@ -185,7 +175,7 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
   }
   $('#rIntro').innerHTML = intro; // INTRO는 넘버스(기획 소유) 콘텐츠 — 줄바꿈 태그 삽입 위해 innerHTML
 
-  // 결과 문구 (§11) — 네 섹션: POWER(용신 A) · BALANCE(강약 B) · CLIMATE(조후 D) · RITUAL(조후 E)
+  // 결과 문구 (§11) — 네 섹션: YONGSIN(용신 A) · BALANCE(강약 B) · CLIMATE(조후 D) · RITUAL(조후 E)
   // ※ A·B·C 후보 배열에서 매번 랜덤 1개. 빈 블록(작성 중/조후 생략)은 그 섹션 통째로 뺀다.
   // ※ D(부적처방)는 결과 화면에서 제외 (기획 결정). PHRASES.D는 유지되나 렌더하지 않음.
   const pick = arr => Array.isArray(arr) ? (arr.length ? arr[Math.floor(Math.random() * arr.length)] : '') : arr;
@@ -193,7 +183,7 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
   // C는 [CLIMATE(D열), RITUAL(E열)] 한 쌍 — 같은 행을 골라 CLIMATE·RITUAL에 나눠 쓴다
   const cPair = pick(PHRASES.C[cKey]) || ['', ''];
   const sections = [
-    ['YOUR POWER', pick(PHRASES.A[yg.U])],
+    ['YOUR YONGSIN', pick(PHRASES.A[yg.U])],
     ['YOUR BALANCE', pick(PHRASES.B[st.level])],
     ['YOUR CLIMATE', cPair[0]],
     ['YOUR RITUAL', cPair[1]],
@@ -213,20 +203,7 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
 
   // 5신(용신·희신·기신·한신·구신) 칩 — 결과 화면에서 제외 (기획 결정)
   $('#gods').hidden = true;
-
-  // 계산 근거 (§3-6 보정 내역 — 값이 어떻게 나왔는지 확인 가능하게)
-  const t = saju.meta.time, s = saju.solarTime;
-  const rows = [
-    ...(lunarInput ? [['음력 입력', `음력 ${lunarInput.year}-${pad(lunarInput.month)}-${pad(lunarInput.day)}${lunarInput.leap ? ' (윤달)' : ''} → 양력 ${saju.input.year}-${pad(saju.input.month)}-${pad(saju.input.day)} 변환 (KASI 음양력 데이터)`]] : []),
-    ['입력 시각', `${saju.input.year}-${pad(saju.input.month)}-${pad(saju.input.day)} ${pad(saju.input.hour)}:${pad(saju.input.minute)}`],
-    ['진태양시', `${pad(s.hh)}:${pad(s.mi)} — 경도 보정 ${t.longitudeCorrection}분${t.dstMinutes ? ` + 서머타임 −${t.dstMinutes}분` : ''}`],
-    ['일주 경계', s.earlyZi ? `자시(진태양시 ${pad(Math.floor(t.ziBoundaryMinutes / 60))}:${pad(t.ziBoundaryMinutes % 60)} 이후) — 다음 날 일주 적용` : '해당일 일주'],
-    ['서머타임', t.dstMinutes ? '시행 기간 — 1시간 되돌림' : '해당 없음'],
-    ['강약', `${st.total > 0 ? '+' : ''}${st.total} · ${st.verdict}`],
-    ['조후', `${cl.net > 0 ? '+' : ''}${cl.net} · ${cl.need === 1 ? '한(寒)' : cl.need === 4 ? '열(熱)' : '평(平)'}`],
-    ['절기 데이터', TERMS_LABEL[saju.meta.sources.terms] ?? saju.meta.sources.terms],
-  ];
-  $('#calcRows').innerHTML = rows.map(([k, v]) => `<div class="c-k">${k}</div><div class="c-v">${v}</div>`).join('');
+  // 계산 근거 영역은 결과 화면에서 제외 (기획 결정 2026-08-23)
 }
 
 /* 키워드 칩 — 후보 개수와 상관없이 매번 랜덤 7개 (기획 결정 · 후보는 쉼표로 넣음).
