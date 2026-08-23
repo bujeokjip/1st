@@ -17,6 +17,7 @@ cd web && npm run build
 ```
 
 `web/dist/index.html` 한 파일이 화면 전체다. 이걸 새로 만들어야 최근 수정이 반영된다.
+빌드하면 GitHub Pages 게시 경로인 `docs/index.html` 도 같은 내용으로 함께 갱신된다.
 
 - `esbuild` 가 없다는 오류가 나면 `cd web && npm install` 을 먼저 한 번 돌리고 다시 빌드한다.
 - 빌드가 실패하면 **서버를 띄우지 말고** 멈춘 뒤, 오류를 쉬운 말로 설명한다.

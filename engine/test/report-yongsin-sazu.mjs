@@ -1,6 +1,6 @@
 /* compare-yongsin-sazu.js 결과 JSON → 고객용 HTML 리포트 생성.
    사용: node test/report-yongsin-sazu.mjs <비교JSON> [출력경로]
-   출력 기본값: docs/우리엔진vsSAZU교차검증.html
+   출력 기본값: policy/우리엔진vsSAZU교차검증.html
 
    경계 B(23:00) 설정의 사주팔자·용신·신강약은 여기서 로컬 재계산한다(API 재호출 없음).
    비교 JSON에는 A(현행 경계) 기준 결과만 들어 있기 때문. */
@@ -14,7 +14,7 @@ import { classify, summarize } from './lib/gap-analysis.mjs';
 const IN = process.argv[2];
 if (!IN) { console.error('사용: node test/report-yongsin-sazu.mjs <비교JSON> [출력경로]'); process.exit(2); }
 // 경로에 한글이 있어 URL.pathname은 퍼센트 인코딩된다 — fileURLToPath로 디코딩
-const OUT = process.argv[3] ?? fileURLToPath(new URL('../../docs/우리엔진vsSAZU교차검증.html', import.meta.url));
+const OUT = process.argv[3] ?? fileURLToPath(new URL('../../policy/우리엔진vsSAZU교차검증.html', import.meta.url));
 
 const src = JSON.parse(readFileSync(IN, 'utf8'));
 const today = new Date().toISOString().slice(0, 10);
