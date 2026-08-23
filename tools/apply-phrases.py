@@ -224,16 +224,19 @@ def main():
             "옛 3단계 양식이라면 새 양식 파일로 다시 작성해주세요")
     blocks["B"] = got
 
-    # C — 키 cold/hot/mild. ★ 같은 키 행이 여러 개면 전부 후보 → 랜덤 1개
+    # C — 키 cold/hot/mild. ★ 각 행이 [D=CLIMATE, E=RITUAL] 한 쌍. 같은 키 여러 행이면 랜덤 1행 → 그 행의 D·E를 함께 사용
     # mild(평)는 선택 — 행이 없거나 비어 있으면 예전처럼 평일 때 C를 생략한다
     C_LABEL = {"cold": "사주가 차가울 때", "hot": "사주가 뜨거울 때", "mild": "치우치지 않을 때(평)"}
+    sheetC = book["C_조후보정"]
     got, seen = {k: [] for k in C_LABEL}, set()
-    for row, key, val in col_rows(book["C_조후보정"], end=60):
+    for r in range(6, 61):
+        key = sheetC.get(f"A{r}")
         if key not in C_LABEL:
             continue
         seen.add(key)
-        if val:
-            got[key].append(val)
+        d, e = sheetC.get(f"D{r}"), sheetC.get(f"E{r}")
+        if d or e:
+            got[key].append([d or "", e or ""])  # [CLIMATE(D), RITUAL(E)]
     for k in ("cold", "hot"):
         if not got[k]:
             blanks.append(f"C_조후보정 시트 ({C_LABEL[k]}) 문구가 하나도 없습니다")
@@ -338,8 +341,8 @@ def main():
         f"  A: {{ // 용신 선언 (용신 오행 5종) — 후보 {n_a}개",
         block_list(blocks["A"], list(range(5))),
         "  },",
-        f"  C: {{ // 조후 보정 — cold(한)/hot(열)/mild(평). 후보 {sum(len(v) for v in blocks['C'].values())}개. mild가 비면 평일 때 생략",
-        block_list(blocks["C"], ["cold", "hot", "mild"]),
+        f"  C: {{ // 조후 — cold/hot/mild. 각 항목 [CLIMATE(D열), RITUAL(E열)] 한 쌍. 후보 {sum(len(v) for v in blocks['C'].values())}쌍. mild 없으면 평일 때 생략",
+        "\n".join(f"    {k}: [{', '.join('[' + js(p[0]) + ', ' + js(p[1]) + ']' for p in blocks['C'][k])}]," for k in ("cold", "hot", "mild")),
         "  },",
         "  D: { // 부적 처방 (용신 오행 5종)",
         "\n".join(f"    {i}: {js(blocks['D'][i])}," for i in range(5)),

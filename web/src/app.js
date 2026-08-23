@@ -176,24 +176,32 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
     const season = INTRO.season?.[P.month.branch] || '';
     const animal = g60 >= 0 ? (INTRO.ganzhi?.[g60] || '') : '';
     if (season && animal) {
-      intro = INTRO.template.replaceAll('{계절}', season).replaceAll('{색동물}', animal);
-      // 뒤에 일주 표기: " - 庚子(경자)일주"  (F 시트 B열과 같은 형식)
-      intro += ` - ${GAN[P.day.stem]}${JI[P.day.branch]}(${GAN_KO[P.day.stem]}${JI_KO[P.day.branch]})일주`;
+      const daeju = ` - ${GAN[P.day.stem]}${JI[P.day.branch]}(${GAN_KO[P.day.stem]}${JI_KO[P.day.branch]})일주`;
+      // 색동물 앞에 모바일 전용 줄바꿈: 폰에선 [계절] / [색동물 - 일주] 두 줄, 태블릿 이상은 한 줄
+      intro = INTRO.template
+        .replaceAll('{계절}', season)
+        .replaceAll('{색동물}', `<br class="br-intro-m">${animal}`) + daeju;
     }
   }
-  $('#rIntro').textContent = intro;
+  $('#rIntro').innerHTML = intro; // INTRO는 넘버스(기획 소유) 콘텐츠 — 줄바꿈 태그 삽입 위해 innerHTML
 
-  // 결과 문구 (§11) — 조립 순서: A(용신) → B(강약) → C(조후, 조건부)  ※ 기획 결정으로 A를 맨 앞에
+  // 결과 문구 (§11) — 네 섹션: POWER(용신 A) · BALANCE(강약 B) · CLIMATE(조후 D) · RITUAL(조후 E)
+  // ※ A·B·C 후보 배열에서 매번 랜덤 1개. 빈 블록(작성 중/조후 생략)은 그 섹션 통째로 뺀다.
   // ※ D(부적처방)는 결과 화면에서 제외 (기획 결정). PHRASES.D는 유지되나 렌더하지 않음.
-  // ※ 빈 블록(작성 중)은 그 줄만 빼고 조립한다.
-  // A·B는 후보 배열 — 매번 랜덤으로 1개를 뽑는다 (기획 결정: 볼 때마다 다른 문장)
   const pick = arr => Array.isArray(arr) ? (arr.length ? arr[Math.floor(Math.random() * arr.length)] : '') : arr;
-  const lines = [pick(PHRASES.A[yg.U]), pick(PHRASES.B[st.level])];
-  // C(조후): 한→cold, 열→hot, 평→mild. 각각 후보 배열에서 랜덤 1개 (mild가 비어 있으면 평일 땐 생략)
-  const cKey = cl.need === 1 ? 'cold' : cl.need === 4 ? 'hot' : 'mild';
-  lines.push(pick(PHRASES.C[cKey]));
-  // 블록 사이 줄바꿈 없이 한 문단으로 이어 붙인다 (기획 결정)
-  $('#rCopy').innerHTML = lines.filter(Boolean).map(t => fill(t, yg)).join(' ');
+  const cKey = cl.need === 1 ? 'cold' : cl.need === 4 ? 'hot' : 'mild'; // 한/열/평
+  // C는 [CLIMATE(D열), RITUAL(E열)] 한 쌍 — 같은 행을 골라 CLIMATE·RITUAL에 나눠 쓴다
+  const cPair = pick(PHRASES.C[cKey]) || ['', ''];
+  const sections = [
+    ['YOUR POWER', pick(PHRASES.A[yg.U])],
+    ['YOUR BALANCE', pick(PHRASES.B[st.level])],
+    ['YOUR CLIMATE', cPair[0]],
+    ['YOUR RITUAL', cPair[1]],
+  ];
+  $('#rCopy').innerHTML = sections
+    .filter(([, body]) => body)
+    .map(([title, body]) => `<div class="r-sec"><p class="r-sec-t">${title}</p><p class="r-sec-b">${fill(body, yg)}</p></div>`)
+    .join('');
   // §10-D 중화 소프트 안내는 별도 하드코딩 없이 B_강약진단 neutral 문구(넘버스)가 담당한다 (2026-08-18 기획 결정)
   $('#yongGlyph').textContent = WX_HAN[yg.U];
 
@@ -224,7 +232,12 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
 /* 키워드 칩 — 후보 개수와 상관없이 매번 랜덤 7개 (기획 결정 · 후보는 쉼표로 넣음).
    맨 오른쪽 ↻ 버튼을 누르면 다른 건 그대로 두고 키워드만 다시 뽑는다. */
 function renderKeywords(all) {
-  const shown = [...all].sort(() => Math.random() - 0.5).slice(0, 7);
+  const cleaned = all.map(k => k.trim()).filter(Boolean);
+  // 첫 칩은 항상 E시트 키워드열의 맨 앞 값으로 고정 (예: "행운의 컬러 : OO"), 나머지 6개만 랜덤
+  const first = cleaned[0];
+  const rest = [...new Set(cleaned.slice(1))].filter(k => k !== first);
+  const restShown = rest.sort(() => Math.random() - 0.5).slice(0, 6);
+  const shown = first ? [first, ...restShown] : restShown;
   // 칩은 폭에 맞춰 자연스럽게 줄바꿈, 각 줄 가운데 정렬 (CSS .yi-kw flex-wrap)
   // 마지막 칩과 ↻를 한 덩어리(.yi-last)로 묶어 ↻가 혼자 다음 줄로 떨어지지 않게 한다
   const chips = shown.map(k => `<span>${k}</span>`);

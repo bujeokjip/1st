@@ -56,6 +56,9 @@
   /* 모바일 전용 줄바꿈: 폰에선 인트로가 3줄, 태블릿 이상은 2줄 */
   .br-m{display:none;}
   @media (max-width:600px){ .br-m{display:inline;} }
+  /* 한 줄 소개: 모바일에서만 계절 / 색동물(일주) 두 줄로 */
+  .br-intro-m{display:none;}
+  @media (max-width:600px){ .br-intro-m{display:inline;} }
 
   /* ── 입력 ── */
   .form-wrap{width:min(400px,100%); margin:0 auto;} /* 인트로 문구 첫 줄 시작점과 정렬 */
@@ -127,7 +130,12 @@
   .r-title .r-title-sub{display:block; font-size:.82em; line-height:1.5;}
   /* 한 줄 소개(사람마다 다름) — 비어 있으면 줄 자체가 안 생김 */
   #rIntro:not(:empty){display:block;}
-  .r-copy{text-align:center; font-size:clamp(15px,1.9vw,18.5px); color:#E3D0A6; margin:0 auto; line-height:1.65; max-width:min(500px,86%);}
+  .r-copy{margin:0 auto; max-width:min(500px,86%);}
+  /* 결과 문구 세 섹션: BALANCE / POWER / RITUAL */
+  .r-sec{text-align:center; margin:0 0 26px;}
+  .r-sec:last-child{margin-bottom:0;}
+  .r-sec-t{font-size:12px; letter-spacing:.24em; font-weight:700; color:var(--gold); margin:0 0 8px;}
+  .r-sec-b{font-size:clamp(15px,1.9vw,18.5px); color:#E3D0A6; margin:0; line-height:1.65;}
   .glyph-stage{display:grid; place-items:center; margin:20px 0 6px;}
   .glyph-char{
     font-family:var(--serif-han); color:#D9B879; line-height:1.1;
