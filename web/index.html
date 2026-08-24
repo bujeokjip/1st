@@ -225,6 +225,15 @@
   .btn-reveal:focus-visible{outline:2px solid var(--gold-bright); outline-offset:3px;}
   @media (prefers-reduced-motion:reduce){ .reveal-body, .reveal-cover{transition:none;} }
   .btn-again:focus-visible{outline:2px solid var(--gold-bright); outline-offset:3px;}
+  /* 인스타그램 안내 — 모바일에서만 노출 (다시하기 버튼 아래) */
+  .insta-promo{display:none; text-align:center; margin:22px auto 0; max-width:min(420px,88%);}
+  .insta-txt{font-size:13.5px; line-height:1.7; color:var(--gold-strong); margin:0;}
+  .insta-link{
+    display:inline-block; margin-top:8px; font-size:13px; color:var(--gold);
+    text-decoration:underline; text-underline-offset:2px; word-break:break-all;
+  }
+  .insta-link:hover{color:var(--gold-bright);}
+  @media (max-width:600px){ .insta-promo{display:block;} }
 
 
   /* ── 모달·폴백 ── */
@@ -314,6 +323,13 @@
         <div class="gods" id="gods"></div>
 
         <div class="r-actions"><button class="btn-again" data-go="find">다시하기</button></div>
+
+        <!-- 모바일 전용: 인스타그램 안내 -->
+        <div class="insta-promo">
+          <p class="insta-txt">부적집의 인스타그램을 방문해보세요!<br>
+          생활 속의 행운을 찾아주는 다양한 컨텐츠가 준비되어 있습니다. 🙂</p>
+          <a class="insta-link" href="https://www.instagram.com/bujeok.jip_seoul/" target="_blank" rel="noopener noreferrer">https://www.instagram.com/bujeok.jip_seoul/</a>
+        </div>
       </div>
       <div class="reveal-cover" id="revealCover">
         <button class="btn-reveal" id="btnReveal">결과보기</button>
