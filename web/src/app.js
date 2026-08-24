@@ -243,6 +243,16 @@ function fitKeywordsOneLine() {
 }
 window.addEventListener('resize', fitKeywordsOneLine);
 
+/* 타이틀 상단 로고 폭 = '용신계산기' 글자 실제 폭의 50% (박스 폭 아님 — 가운데정렬 span 실측) */
+function sizeHeroLogo() {
+  const txt = $('.title-txt'), logo = $('.hero-logo');
+  if (!txt || !logo) return;
+  logo.style.setProperty('--logo-w', `${Math.round(txt.getBoundingClientRect().width * 0.5)}px`);
+}
+sizeHeroLogo();
+window.addEventListener('resize', sizeHeroLogo);
+window.addEventListener('load', sizeHeroLogo); // 폰트 로딩 후 타이틀 폭 확정되면 재보정
+
 /* ── 공개 연출: [결과보기]를 누르면 블러가 걷히며 본문이 드러난다 ── */
 $('#btnReveal').addEventListener('click', () => {
   $('#revealWrap').classList.remove('hidden');
