@@ -256,8 +256,8 @@ window.addEventListener('load', sizeHeroLogo); // 폰트 로딩 후 타이틀 �
 /* ── 공개 연출: [결과보기]를 누르면 블러가 걷히며 본문이 드러난다 ── */
 $('#btnReveal').addEventListener('click', () => {
   $('#revealWrap').classList.remove('hidden');
-  // 드러나는 본문 상단(용신 글자)으로 시선 이동
-  setTimeout(() => $('#yongGlyph')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
+  // "찾았어요!" 제목이 페이지 상단에 붙도록 스크롤 (본문 전체가 한 화면에 들어오게)
+  setTimeout(() => $('.r-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
 });
 
 /* ── 모달·폴백 ── */
