@@ -188,17 +188,22 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
   const cKey = cl.need === 1 ? 'cold' : cl.need === 4 ? 'hot' : 'mild'; // 한/열/평
   // C는 [CLIMATE(D열), RITUAL(E열)] 한 쌍 — 같은 행을 골라 CLIMATE·RITUAL에 나눠 쓴다
   const cPair = pick(PHRASES.C[cKey]) || ['', ''];
+  // YOUR ITEMS는 넘버스가 아니라 화면 고정문구 — 항상 맨 아래(RITUAL 다음)에 노출
+  const ITEMS_FIXED = '일상 속 작은 물건으로 당신의 용신에 힘을 보태보세요.<br>오늘 준비한 건 주 5일, 하루 8시간쯤 함께하는 키보드 키캡이에요.<br>누를 때마다 복이 옵니다!';
   const sections = [
     ['YOUR YONGSIN', pick(PHRASES.A[yg.U])],
     ['YOUR BALANCE', pick(PHRASES.B[st.level])],
     ['YOUR CLIMATE', cPair[0]],
     ['YOUR RITUAL', cPair[1]],
+    ['YOUR ITEMS', ITEMS_FIXED],
   ];
   $('#rCopy').innerHTML = sections
     .filter(([, body]) => body)
     .map(([title, body]) => `<div class="r-sec"><p class="r-sec-t">${title}</p><p class="r-sec-b">${fill(body, yg)}</p></div>`)
     .join('');
   // §10-D 중화 소프트 안내는 별도 하드코딩 없이 B_강약진단 neutral 문구(넘버스)가 담당한다 (2026-08-18 기획 결정)
+  // 하단 버튼 문구 — 결과가 나올 때마다 셋 중 랜덤 (고정 후보, 넘버스 아님)
+  $('.btn-again').textContent = pick(['엄마것도 해보기', '친구것도 해보기', '다시 해보기']);
   $('#yongGlyph').textContent = WX_HAN[yg.U];
 
   // 용신 설명 — 키워드 칩만 표시 (제목·설명은 결과 화면에서 제외, 기획 결정 · 엑셀 E_용신설명 시트)
