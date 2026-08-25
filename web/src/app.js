@@ -11,6 +11,9 @@ import KoreanLunarCalendar from 'korean-lunar-calendar'; // 음력→양력 변�
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 
+/* GA/GTM 이벤트 전송 — dataLayer로 신호만 쏜다(GTM에서 GA4로 포워딩). GTM 없어도 에러 안 남. */
+const track = (event, params = {}) => { (window.dataLayer = window.dataLayer || []).push({ event, ...params }); };
+
 /* ── 화면 네비게이션 ──
    입력·결과·오류를 별도 화면으로 두고, 브라우저 뒤로가기가 결과→입력으로 동작하도록
    history에 상태를 쌓는다(다시하기 버튼도 같은 경로를 탄다). */
@@ -36,6 +39,8 @@ $$('[data-go="find"]').forEach(b => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goFind(); }
   });
 });
+// 하단 재도전 버튼 클릭 추적 — 어떤 문구(엄마/친구/다시)였는지 함께 기록
+$('.btn-again')?.addEventListener('click', e => track('click_again', { label: e.currentTarget.textContent.trim() }));
 
 /* 태어난 도시 → 경도(§3-6). 이전 프로토타입에선 UI만 있고 계산에 반영되지 않았으나,
    경도 보정이 기본 ON이 되면서 실제로 결과에 반영된다. */
@@ -125,6 +130,7 @@ $('#btnFind').addEventListener('click', async () => {
     renderResult(saju, strength, climate, yongsin, lunarInput);
     $('#revealWrap').classList.add('hidden'); // 결과 본문은 가려둔 채 시작 → [결과보기]로 공개
     goResult();
+    track('view_result', { yongsin: WX_HAN[yongsin.U] }); // 전환: 실제로 결과가 산출됨 (+어떤 용신인지)
     // 버튼이 큰 용신 한자 정중앙에 오도록, 결과 화면이 그려진 뒤(다음 프레임) 글자 중심 위치를 재서 CSS 변수로 전달
     requestAnimationFrame(() => {
       const wrapTop = $('#revealWrap').getBoundingClientRect().top;
@@ -267,6 +273,7 @@ window.addEventListener('load', sizeHeroLogo); // 폰트 로딩 후 타이틀 �
 /* ── 공개 연출: [결과보기]를 누르면 블러가 걷히며 본문이 드러난다 ── */
 $('#btnReveal').addEventListener('click', () => {
   $('#revealWrap').classList.remove('hidden');
+  track('click_reveal'); // 결과보기를 눌러 용신을 실제로 확인함
   // "찾았어요!" 제목이 페이지 상단에 붙도록 스크롤 (본문 전체가 한 화면에 들어오게)
   setTimeout(() => $('.r-title')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
 });
