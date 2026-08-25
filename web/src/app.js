@@ -189,7 +189,7 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
   // C는 [CLIMATE(D열), RITUAL(E열)] 한 쌍 — 같은 행을 골라 CLIMATE·RITUAL에 나눠 쓴다
   const cPair = pick(PHRASES.C[cKey]) || ['', ''];
   // YOUR ITEMS는 넘버스가 아니라 화면 고정문구 — 항상 맨 아래(RITUAL 다음)에 노출
-  const ITEMS_FIXED = '일상 속 작은 물건으로 당신의 용신에 힘을 보태보세요.<br>오늘 준비한 건 주 5일, 하루 8시간쯤 함께하는 키보드 키캡이에요.<br>누를 때마다 복이 올지도 모르잖아요?';
+  const ITEMS_FIXED = '일상 속 작은 물건으로 당신의 용신에 힘을 보태보세요. <br class="br-d">오늘 준비한 건 주 5일, 하루 8시간쯤 함께하는 키보드 키캡이에요.<br>누를 때마다 복이 올지도 모르잖아요?';
   // YOUR CLIMATE(cPair[0])는 화면에서 제외 (기획 결정) — 문구는 넘버스에 남지만 렌더 안 함. RITUAL(cPair[1])만 노출
   const sections = [
     ['YOUR YONGSIN', pick(PHRASES.A[yg.U])],

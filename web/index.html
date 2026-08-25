@@ -76,6 +76,9 @@
   /* 모바일 전용 줄바꿈: 폰에선 인트로가 3줄, 태블릿 이상은 2줄 */
   .br-m{display:none;}
   @media (max-width:600px){ .br-m{display:inline;} }
+  /* 타블렛·PC 전용 줄바꿈 (모바일에선 줄 안 바꿈) */
+  .br-d{display:inline;}
+  @media (max-width:600px){ .br-d{display:none;} }
   /* 한 줄 소개: 모바일에서만 계절 / 색동물(일주) 두 줄로 */
   .br-intro-m{display:none;}
   @media (max-width:600px){ .br-intro-m{display:inline;} }
