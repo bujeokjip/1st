@@ -201,11 +201,11 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
     ['YOUR YONGSIN', pick(PHRASES.A[yg.U])],
     ['YOUR BALANCE', pick(PHRASES.B[st.level])],
     ['YOUR RITUAL', cPair[1]],
-    ['YOUR ITEMS', ITEMS_FIXED],
+    ["Today's ITEM", ITEMS_FIXED],
   ];
   $('#rCopy').innerHTML = sections
     .filter(([, body]) => body)
-    .map(([title, body]) => `<div class="r-sec${title === 'YOUR ITEMS' ? ' r-sec--item' : ''}"><p class="r-sec-t">${title}</p><p class="r-sec-b">${fill(body, yg)}</p></div>`)
+    .map(([title, body]) => `<div class="r-sec${title === "Today's ITEM" ? ' r-sec--item' : ''}"><p class="r-sec-t">${title}</p><p class="r-sec-b">${fill(body, yg)}</p></div>`)
     .join('');
   // §10-D 중화 소프트 안내는 별도 하드코딩 없이 B_강약진단 neutral 문구(넘버스)가 담당한다 (2026-08-18 기획 결정)
   // 하단 버튼 문구 — 결과가 나올 때마다 셋 중 랜덤 (고정 후보, 넘버스 아님)
