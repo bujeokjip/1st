@@ -29,7 +29,13 @@ function goFind() {
 }
 window.addEventListener('popstate', e => showScreen(e.state?.screen === 'result' ? 'result' : 'find'));
 history.replaceState({ screen: 'find' }, '', location.hash || '#');
-$$('[data-go="find"]').forEach(b => b.addEventListener('click', goFind));
+$$('[data-go="find"]').forEach(b => {
+  b.addEventListener('click', goFind);
+  // 버튼이 아닌 요소(결과화면 로고 등)는 키보드 접근을 직접 보강
+  if (b.tagName !== 'BUTTON') b.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goFind(); }
+  });
+});
 
 /* 태어난 도시 → 경도(§3-6). 이전 프로토타입에선 UI만 있고 계산에 반영되지 않았으나,
    경도 보정이 기본 ON이 되면서 실제로 결과에 반영된다. */
