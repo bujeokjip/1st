@@ -178,14 +178,11 @@ function renderResult(saju, st, cl, yg, lunarInput = null) {
     const season = INTRO.season?.[P.month.branch] || '';
     const animal = g60 >= 0 ? (INTRO.ganzhi?.[g60] || '') : '';
     if (season && animal) {
-      const dayPillar = `${GAN[P.day.stem]}${JI[P.day.branch]}(${GAN_KO[P.day.stem]}${JI_KO[P.day.branch]})일주`;
-      // 모바일: [계절]/[색동물 - 일주]/[고정문장]  ·  태블릿↑: [계절 색동물]/[일주]/[고정문장]
-      //  - br-intro-m: 모바일에서만 계절/색동물 분리
-      //  - 일주 앞: 모바일은 " - "로 이어붙이고(intro-dash), 태블릿↑은 줄바꿈(br-d)
+      const daeju = ` - ${GAN[P.day.stem]}${JI[P.day.branch]}(${GAN_KO[P.day.stem]}${JI_KO[P.day.branch]})일주`;
+      // 모든 화면 공통(모바일=태블릿=PC): [계절] / [색동물 - 일주] / [고정문장]
       intro = INTRO.template
         .replaceAll('{계절}', season)
-        .replaceAll('{색동물}', `<br class="br-intro-m">${animal}`)
-        + `<span class="intro-dash"> - </span><br class="br-d">${dayPillar}`;
+        .replaceAll('{색동물}', `<br>${animal}`) + daeju;
     }
   }
   $('#rIntro').innerHTML = intro; // INTRO는 넘버스(기획 소유) 콘텐츠 — 줄바꿈 태그 삽입 위해 innerHTML
