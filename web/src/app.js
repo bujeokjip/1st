@@ -30,8 +30,14 @@ function goFind() {
   if (history.state?.screen === 'result') history.back();
   else { history.replaceState({ screen: 'find' }, '', '#'); showScreen('find'); }
 }
-window.addEventListener('popstate', e => showScreen(e.state?.screen === 'result' ? 'result' : 'find'));
-history.replaceState({ screen: 'find' }, '', location.hash || '#');
+window.addEventListener('popstate', e => showScreen(e.state?.screen || 'intro'));
+history.replaceState({ screen: 'intro' }, '', location.hash || '#');
+// 인트로 [용신찾기] → 입력 화면
+$('#btnStart')?.addEventListener('click', () => {
+  history.pushState({ screen: 'find' }, '', '#find');
+  showScreen('find');
+  track('click_start'); // 랜딩에서 시작 (GTM 트리거 정규식에 넣으면 GA에도 집계)
+});
 $$('[data-go="find"]').forEach(b => {
   b.addEventListener('click', goFind);
   // 버튼이 아닌 요소(결과화면 로고 등)는 키보드 접근을 직접 보강
@@ -260,15 +266,8 @@ function fitKeywordsOneLine() {
 }
 window.addEventListener('resize', fitKeywordsOneLine);
 
-/* 타이틀 상단 로고 폭 = '용신계산기' 글자 실제 폭의 50% (박스 폭 아님 — 가운데정렬 span 실측) */
-function sizeHeroLogo() {
-  const txt = $('.title-txt'), logo = $('.hero-logo');
-  if (!txt || !logo) return;
-  logo.style.setProperty('--logo-w', `${Math.round(txt.getBoundingClientRect().width * 0.5)}px`);
-}
-sizeHeroLogo();
-window.addEventListener('resize', sizeHeroLogo);
-window.addEventListener('load', sizeHeroLogo); // 폰트 로딩 후 타이틀 폭 확정되면 재보정
+/* 입력화면 로고 폭 = '용신계산기' 글자폭의 50%. 숨겨진 화면은 실측이 불안정해
+   CSS clamp로 타이틀(clamp 36~58px)과 같은 비율(글자폭≈폰트×5.1의 절반=2.55em)로 고정한다. */
 
 /* ── 공개 연출: [결과보기]를 누르면 블러가 걷히며 본문이 드러난다 ── */
 $('#btnReveal').addEventListener('click', () => {
