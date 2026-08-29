@@ -47,6 +47,8 @@ $$('[data-go="find"]').forEach(b => {
 });
 // 하단 재도전 버튼 클릭 추적 — 어떤 문구(엄마/친구/다시)였는지 함께 기록
 $('.btn-again')?.addEventListener('click', e => track('click_again', { label: e.currentTarget.textContent.trim() }));
+// 결과화면 최상단 로고(BI) → 첫 화면 복귀 클릭 추적
+$('.hero-logo--result')?.addEventListener('click', () => track('click_home'));
 
 /* 태어난 도시 → 경도(§3-6). 이전 프로토타입에선 UI만 있고 계산에 반영되지 않았으나,
    경도 보정이 기본 ON이 되면서 실제로 결과에 반영된다. */
@@ -105,6 +107,7 @@ const fill = (tpl, r) => tpl
   .replaceAll('{용신}', WX_NAME[r.U]).replaceAll('{기신}', WX_NAME[r.gi]).replaceAll('{희신}', WX_NAME[r.hee]);
 
 $('#btnFind').addEventListener('click', async () => {
+  track('click_find'); // 계산기 찾기 버튼 누른 횟수 (검증 실패 여부와 무관하게 클릭 시점)
   if (selH.value === '') { $('#ovTime').classList.add('on'); return; } // §10-A 시각 필수
 
   // 음력 입력이면 양력으로 변환해 계산한다. 표시용 원본 입력은 따로 보관.
