@@ -47,8 +47,15 @@ $$('[data-go="find"]').forEach(b => {
 });
 // 하단 재도전 버튼 클릭 추적 — 어떤 문구(엄마/친구/다시)였는지 함께 기록
 $('.btn-again')?.addEventListener('click', e => track('click_again', { label: e.currentTarget.textContent.trim() }));
-// 결과화면 최상단 로고(BI) → 첫 화면 복귀 클릭 추적
-$('.hero-logo--result')?.addEventListener('click', () => track('click_home'));
+// 결과화면 최상단 로고(BI) → 랜딩(인트로) 화면으로 이동 (+클릭 추적, 키보드 접근)
+const resultLogo = $('.hero-logo--result');
+if (resultLogo) {
+  const goHome = () => { track('click_home'); history.pushState({ screen: 'intro' }, '', '#'); showScreen('intro'); };
+  resultLogo.addEventListener('click', goHome);
+  resultLogo.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goHome(); }
+  });
+}
 
 /* 태어난 도시 → 경도(§3-6). 이전 프로토타입에선 UI만 있고 계산에 반영되지 않았으나,
    경도 보정이 기본 ON이 되면서 실제로 결과에 반영된다. */
