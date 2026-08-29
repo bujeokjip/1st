@@ -87,6 +87,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .hero-logo--intro{--logo-w:clamp(120px,20vw,180px); margin-bottom:28px;}
   /* #scr-intro로 우선순위 상향 (h1.title 기본값을 확실히 덮어씀) */
   #scr-intro .title--intro{font-size:clamp(20px,4.4vw,38px); letter-spacing:.01em; margin-bottom:0; line-height:1.5;}
+  /* 모바일에서 용신찾기 버튼을 폭·높이 80%로 축소 */
+  @media (max-width:600px){ #btnStart{transform:scale(.8);} }
   .intro-cta{margin-top:56px;}
   /* 모바일 전용 줄바꿈: 폰에선 인트로가 3줄, 태블릿 이상은 2줄 */
   .br-m{display:none;}
